@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Witbank Tank Terminals</title>
+  <link rel="stylesheet" href="styles.css?v=35">
+</head>
+<body>
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <h1>Witbank Tank Terminals</h1>
+        <p class="login-sub">Bulk Petroleum Storage &amp; Stock Management</p>
+      </div>
+      <form id="login-form">
+        <label>Username <input id="login-username" type="text" autocomplete="username" required></label>
+        <label>Password <input id="login-password" type="password" autocomplete="current-password" required></label>
+        <div id="login-error" class="error-msg" hidden></div>
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+      </form>
+      <div id="app-version" style="text-align:center;margin-top:18px;color:#9aa7b0;font-size:11px"></div>
+    </div>
+  </div>
+
+  <div id="app" hidden>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo-badge small">WTT</div>
+        <div class="brand-text">
+          <strong>Witbank Tank</strong>
+          <span id="brand-name">Terminals</span>
+        </div>
+      </div>
+      <nav id="nav">
+        <button class="nav-item dash" data-section="dashboard">Dashboard</button>
+        <div class="nav-group nav-drop-toggle">Movements <span class="caret">▾</span></div>
+        <div class="nav-drop">
+          <button class="nav-item" data-section="stock">Tanks / Stock</button>
+          <button class="nav-item" data-section="receipts">Stock Received</button>
+          <button class="nav-item" data-section="dispatches">Stock Dispatch</button>
+          <button class="nav-item" data-section="transfers">Transfers</button>
+          <button class="nav-item" data-section="adjustments">Dips &amp; Adjustments</button>
+        </div>
+        <div class="nav-group nav-drop-toggle">Reports <span class="caret">▾</span></div>
+        <div class="nav-drop">
+          <button class="nav-item" data-section="reports" data-report-tab="stock">Stock</button>
+          <button class="nav-item" data-section="reports" data-report-tab="movements">Movement</button>
+          <button class="nav-item" data-section="reports" data-report-tab="registers">Register</button>
+        </div>
+        <div class="nav-group nav-drop-toggle admin-only">Administration <span class="caret">▾</span></div>
+        <div class="nav-drop admin-only">
+          <button class="nav-item admin-only" data-section="customers">Customers</button>
+          <button class="nav-item admin-only" data-section="suppliers">Suppliers</button>
+          <button class="nav-item admin-only" data-section="products">Products</button>
+          <button class="nav-item admin-only" data-section="transporters">Transporters</button>
+          <button class="nav-item admin-only" data-section="drivers">Drivers</button>
+          <button class="nav-item admin-only" data-section="users">Users</button>
+          <button class="nav-item admin-only" data-section="audit">Audit Log</button>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-box">
+          <strong id="user-name"></strong>
+          <span id="user-role" class="role-chip"></span>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="btn-change-pw">Change password</button>
+        <button class="btn btn-ghost btn-sm" id="btn-logout">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <h2 id="section-title">Dashboard</h2>
+        <div id="global-alert" hidden class="global-alert"></div>
+      </header>
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <div id="modal-overlay" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title"></h3>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" hidden></div>
+  <script src="app.js?v=51"></script>
+</body>
+</html>

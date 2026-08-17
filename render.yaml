@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: wtt-stock-system
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: FORCE_HTTPS
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+    disk:
+      name: wtt-data
+      mountPath: /app/data
+      sizeGB: 1
