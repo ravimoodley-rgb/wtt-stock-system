@@ -495,19 +495,6 @@ async function renderDispatches(content) {
         <label>Driver Name <input name="driver_name" placeholder="Driver name"></label>
         <div class="form-actions"><button type="submit" class="btn btn-primary">Save Delivery</button></div>
       </form>` : ''}
-    </div>
-    <div class="card" id="dispatch-register-card">
-      <div class="card-title">Register</div>
-      <div class="filter-bar">
-        <label>From <input type="date" id="d-from"></label>
-        <label>To <input type="date" id="d-to"></label>
-        <label>Product <select id="d-product">${productOptions()}</select></label>
-        <label>Tank <select id="d-tank"><option value="">All</option>${tankOptions()}</select></label>
-        <label>Customer <select id="d-customer">${customerOptions()}</select></label>
-        <label>Search <input id="d-q" placeholder="Doc no / vehicle / delivery no"></label>
-        <button class="btn btn-outline" id="d-apply">Apply</button>
-      </div>
-      <div id="d-list" class="table-wrap"></div>
     </div>`;
   if (canWrite()) {
     bindTankProductFilter($('#quick-dispatch select[name=tank_id]'), $('#quick-dispatch select[name=product_id]'));
@@ -520,19 +507,6 @@ async function renderDispatches(content) {
     $('#d-meter-opening').addEventListener('input', updD);
     $('#d-meter-closing').addEventListener('input', updD);
   }
-  const apply = async () => {
-    const p = new URLSearchParams();
-    if ($('#d-from').value) p.set('from', $('#d-from').value);
-    if ($('#d-to').value) p.set('to', $('#d-to').value);
-    if ($('#d-product').value) p.set('product_id', $('#d-product').value);
-    if ($('#d-tank').value) p.set('tank_id', $('#d-tank').value);
-    if ($('#d-customer').value) p.set('customer_id', $('#d-customer').value);
-    if ($('#d-q').value.trim()) p.set('q', $('#d-q').value.trim());
-    const rows = await api('/dispatches?' + p.toString());
-    $('#d-list').innerHTML = dispatchesTable(rows);
-  };
-  $('#d-apply').addEventListener('click', apply);
-  apply();
 }
 
 function dispatchesTable(rows) {
@@ -587,7 +561,7 @@ async function renderTransfers(content) {
     <div class="card">
       <div class="content-head">
         <h3>Transfer stock between tanks</h3>
-        ${canWrite() ? '<button class="btn btn-accent" onclick="transferModal()">+ New transfer</button>' : ''}
+        ${canWrite() ? '<button class="btn btn-transport" onclick="transferModal()">+ New transfer</button>' : ''}
       </div>
       ${canWrite() ? `
       <form class="form-grid" id="transfer-form">
@@ -595,14 +569,14 @@ async function renderTransfers(content) {
         <label>To tank <select name="to_tank_id">${tankOptions()}</select></label>
         <label>Quantity (litres) <input name="qty" type="number" step="any" min="0.001" required></label>
         <label>Date &amp; time <input name="transferred_at" type="datetime-local" value="${dtNow()}"></label>
-        <label class="full">Notes <textarea name="notes" style="min-height:40px"></textarea></label>
+        <label class="full">Reason for transfer <textarea name="notes" style="min-height:40px"></textarea></label>
         <div class="form-actions"><button type="submit" class="btn btn-primary">Transfer</button></div>
       </form>` : ''}
     </div>
     <div class="card">
       <div class="card-title">Transfer history</div>
       <div class="table-wrap"><table class="data">
-        <thead><tr><th>Date</th><th>Product</th><th>Transfer</th><th>Quantity</th><th>Notes</th><th>Operator</th></tr></thead>
+        <thead><tr><th>Date</th><th>Product</th><th>Transfer</th><th>Quantity</th><th>Reason for transfer</th><th>Operator</th></tr></thead>
         <tbody>${rows || '<tr class="empty-row"><td colspan="6">No transfers yet.</td></tr>'}</tbody>
       </table></div>
     </div>`;
@@ -626,7 +600,7 @@ function transferModal() {
       <label>To tank <select name="to_tank_id">${tankOptions()}</select></label>
       <label>Quantity (litres) <input name="qty" type="number" step="any" min="0.001" required></label>
       <label>Date &amp; time <input name="transferred_at" type="datetime-local" value="${dtNow()}"></label>
-      <label class="full">Notes <textarea name="notes"></textarea></label>
+      <label class="full">Reason for transfer <textarea name="notes"></textarea></label>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost btn-outline" onclick="closeModal()">Cancel</button>
         <button type="submit" class="btn btn-primary">Transfer</button>
@@ -664,7 +638,7 @@ async function renderAdjustments(content) {
     <div class="card">
       <div class="content-head">
         <h3>Stock adjustments &amp; dip readings</h3>
-        ${canWrite() ? '<button class="btn btn-accent" onclick="adjustmentModal()">+ New adjustment</button>' : ''}
+        ${canWrite() ? '<button class="btn btn-transport" onclick="adjustmentModal()">+ New adjustment</button>' : ''}
       </div>
       ${canWrite() ? `
       <form class="form-grid" id="adj-form">
