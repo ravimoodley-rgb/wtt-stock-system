@@ -26,7 +26,13 @@ async function api(url, method = 'GET', body) {
   } catch {
     throw new Error('Cannot reach the server. Run start.bat and open http://localhost:3001 (do not open index.html directly).');
   }
-  if (res.status === 401 && state.token) { logout(false); throw new Error('Session expired - please sign in'); }
+  if (res.status === 401) {
+    state.token = null;
+    localStorage.removeItem('wtt_token');
+    $('#login-screen').hidden = false;
+    $('#app').hidden = true;
+    throw new Error('Session expired - please sign in');
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
