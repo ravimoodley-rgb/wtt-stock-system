@@ -47,7 +47,8 @@ git push -u origin main
 
 - Open `https://www.yourdomain.co.za` and sign in.
 - **Immediately change the admin password** (`admin` / `admin123` is the default and is warned about on startup).
-- The SQLite database lives on Render's persistent disk (`/app/data/wtt.db`) and survives redeploys.
+- **Free tier has no persistent disk.** The SQLite database (`/app/data/wtt.db`) is ephemeral and resets on every redeploy/sleep. Use this only for testing.
+- For persistent data, either upgrade to a paid plan (add the disk back to `render.yaml`) or switch to an external database.
 
 ## Notes
 
