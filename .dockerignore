@@ -1,5 +1,6 @@
 node_modules
-data
+data/wtt.db-wal
+data/wtt.db-shm
 *.log
 .env
 .git

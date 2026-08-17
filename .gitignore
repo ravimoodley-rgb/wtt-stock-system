@@ -1,5 +1,6 @@
 node_modules/
-data/
+data/*
+!data/wtt.db
 *.log
 .env
 .DS_Store
