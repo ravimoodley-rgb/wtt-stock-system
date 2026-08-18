@@ -913,7 +913,7 @@ async function deleteParty(kind, id) {
 async function renderCustomers(content) {
   content.innerHTML = `
     <div class="content-head">
-      <div class="muted">Customers who receive dispatched product.</div>
+      <div class="muted">List of Customers</div>
       ${canWrite() ? '<button class="btn btn-transport" onclick="partyModal(\'customer\')">+ Add customer</button>' : ''}
     </div>
     <div class="table-wrap"><table class="data" id="export-table-customers">
@@ -933,7 +933,7 @@ async function renderCustomers(content) {
 async function renderSuppliers(content) {
   content.innerHTML = `
     <div class="content-head">
-      <div class="muted">Suppliers who deliver product into the terminal.</div>
+      <div class="muted">List of Suppliers</div>
       ${canWrite() ? '<button class="btn btn-transport" onclick="partyModal(\'supplier\')">+ Add supplier</button>' : ''}
     </div>
     <div class="table-wrap"><table class="data">
@@ -992,7 +992,7 @@ async function deleteProduct(id) {
 async function renderProducts(content) {
   content.innerHTML = `
     <div class="content-head">
-      <div class="muted">Products stored at the terminal.</div>
+      <div class="muted">List of Products</div>
       ${canWrite() ? '<button class="btn btn-transport" onclick="productModal()">+ Add product</button>' : ''}
     </div>
     <div class="table-wrap"><table class="data">
@@ -1152,7 +1152,7 @@ async function deleteVehicle(id) {
 async function renderVehicles(content) {
   content.innerHTML = `
     <div class="content-head">
-      <div class="muted">Tanker fleet vehicles and their transport company.</div>
+      <div class="muted">Delivery Vehicles | Transport Companies</div>
       ${canWrite() ? '<button class="btn btn-transport" onclick="vehicleModal()">+ Add vehicle</button>' : ''}
     </div>
     <div class="table-wrap"><table class="data">
