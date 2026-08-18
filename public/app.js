@@ -172,6 +172,12 @@ function customerOptions(sel) {
 function transporterOptions(sel) {
   return `<option value="">— Select transporter —</option>` + transportersCache.map(t => `<option value="${t.id}" ${String(t.id) === String(sel) ? 'selected' : ''}>${esc(t.name)}</option>`).join('');
 }
+function vehicleOptions(sel) {
+  return `<option value="">— Select vehicle —</option>` + vehiclesCache.map(v => `<option value="${v.reg}" ${String(v.reg) === String(sel) ? 'selected' : ''}>${esc(v.reg)}${v.vehicle_type ? ' — ' + esc(v.vehicle_type) : ''}</option>`).join('');
+}
+function vehicleInfo(reg) {
+  return vehiclesCache.find(v => String(v.reg) === String(reg));
+}
 function productSelect(filter) {
   return `<select id="f-product">${productOptions()}</select>`;
 }
@@ -392,8 +398,8 @@ async function renderReceipts(content) {
         <label>Meter Closing Reading <input name="meter_closing" id="meter_closing" type="number" step="any" min="0"></label>
         <label>Received Quantity (L) <input name="recv_qty" id="recv-qty" type="number" step="any" min="0" readonly></label>
         <label>Transporter Name <select name="transporter_id">${transporterOptions()}</select></label>
-        <label>Vehicle Registration <input name="vehicle_reg" placeholder="MPM123GP"></label>
-        <label>Driver Name <input name="driver_name" placeholder="Driver name"></label>
+        <label>Vehicle <select name="vehicle_reg" id="rec-vehicle">${vehicleOptions()}</select></label>
+        <label>Driver Name <input name="driver_name" id="rec-driver" placeholder="Driver name"></label>
         <div class="form-actions"><button type="submit" class="btn btn-primary">Save Delivery</button></div>
       </form>` : ''}
     </div>`;
@@ -408,8 +414,23 @@ async function renderReceipts(content) {
     };
     $('#meter_opening').addEventListener('input', updRecv);
     $('#meter_closing').addEventListener('input', updRecv);
+    bindVehicleAutofill('#quick-receipt', 'rec-vehicle', 'rec-driver');
     $('#quick-receipt').addEventListener('submit', submitReceipt);
   }
+}
+
+function bindVehicleAutofill(formSel, vehicleId, driverId) {
+  const form = $(formSel);
+  const veh = $(formSel + ' #' + vehicleId);
+  const driver = $(formSel + ' #' + driverId);
+  if (!form || !veh || !driver) return;
+  veh.addEventListener('change', () => {
+    const v = vehicleInfo(veh.value);
+    if (!v) { driver.value = ''; return; }
+    driver.value = v.driver || '';
+    const trans = form.querySelector('select[name=transporter_id]');
+    if (trans && v.transporter_id) trans.value = v.transporter_id;
+  });
 }
 
 function receiptsTable(rows) {
@@ -472,8 +493,8 @@ async function renderDispatches(content) {
         <label>Meter Closing Reading <input name="meter_closing" id="d-meter-closing" type="number" step="any" min="0"></label>
         <label>Loaded Quantity <input name="qty" id="d-qty" type="number" step="any" min="0" readonly></label>
         <label>Transporter <select name="transporter_id">${transporterOptions()}</select></label>
-        <label>Vehicle Registration <input name="vehicle_reg" placeholder="MPM123GP"></label>
-        <label>Driver Name <input name="driver_name" placeholder="Driver name"></label>
+        <label>Vehicle <select name="vehicle_reg" id="d-vehicle">${vehicleOptions()}</select></label>
+        <label>Driver Name <input name="driver_name" id="d-driver" placeholder="Driver name"></label>
         <div class="form-actions"><button type="submit" class="btn btn-primary">Save Delivery</button></div>
       </form>` : ''}
     </div>`;
@@ -487,6 +508,7 @@ async function renderDispatches(content) {
     };
     $('#d-meter-opening').addEventListener('input', updD);
     $('#d-meter-closing').addEventListener('input', updD);
+    bindVehicleAutofill('#quick-dispatch', 'd-vehicle', 'd-driver');
   }
 }
 
