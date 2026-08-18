@@ -127,8 +127,11 @@ html, body {
   color: #fff;
   font-size: 14px;
   font-weight: 600;
+  cursor: pointer;
+  display: inline-block;
 }
 .btn-cam.ghost { background: #eef2f6; color: var(--ink); border: 1px solid var(--line); }
+.photo-input { display: none; }
 .photo-box img { width: 100%; display: block; }
 .photo-remove {
   position: absolute;

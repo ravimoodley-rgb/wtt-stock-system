@@ -33,21 +33,6 @@
     <form id="form-receive" class="capture-form" autocomplete="off">
       <div class="card">
         <h3>Stock Received &mdash; Receiving</h3>
-        <div class="photo-widget" data-target="photo-receive">
-          <input type="file" accept="image/*" class="photo-input" data-capture="camera">
-          <div class="photo-box" id="photo-receive">
-            <div class="photo-empty">
-              <span class="cam-icon">&#128247;</span>
-              <b>Capture waybill / delivery note</b>
-              <div class="photo-btns">
-                <button type="button" class="btn-cam" data-action="camera">Take photo</button>
-                <button type="button" class="btn-cam ghost" data-action="gallery">Gallery</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
         <div class="field-row">
           <label>Date <input type="date" name="received_date" required></label>
           <label>Time <input type="time" name="received_time" required></label>
@@ -67,6 +52,23 @@
         <label>Driver name <input type="text" name="driver_name" placeholder="Driver name"></label>
         <label>Notes <textarea name="notes" rows="2" placeholder="Optional notes"></textarea></label>
       </div>
+      <div class="card">
+        <h3>Capture waybill / delivery note</h3>
+        <div class="photo-widget" data-target="photo-receive">
+          <div class="photo-box" id="photo-receive">
+            <div class="photo-empty">
+              <span class="cam-icon">&#128247;</span>
+              <b>Capture waybill / delivery note</b>
+              <div class="photo-btns">
+                <label for="cam-rec" class="btn-cam">Take photo</label>
+                <label for="gal-rec" class="btn-cam ghost">Gallery</label>
+              </div>
+            </div>
+          </div>
+          <input type="file" accept="image/*" id="cam-rec" class="photo-input" capture="environment">
+          <input type="file" accept="image/*" id="gal-rec" class="photo-input">
+        </div>
+      </div>
       <button type="submit" class="btn-save" id="btn-save-receive">Save Stock Received</button>
     </form>
   </main>
@@ -75,21 +77,6 @@
     <form id="form-dispatch" class="capture-form" autocomplete="off">
       <div class="card">
         <h3>Stock Dispatch &mdash; Customer Delivery</h3>
-        <div class="photo-widget" data-target="photo-dispatch">
-          <input type="file" accept="image/*" class="photo-input" data-capture="camera">
-          <div class="photo-box" id="photo-dispatch">
-            <div class="photo-empty">
-              <span class="cam-icon">&#128247;</span>
-              <b>Capture delivery note / proof</b>
-              <div class="photo-btns">
-                <button type="button" class="btn-cam" data-action="camera">Take photo</button>
-                <button type="button" class="btn-cam ghost" data-action="gallery">Gallery</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
         <div class="field-row">
           <label>Date <input type="date" name="dispatched_date" required></label>
           <label>Time <input type="time" name="dispatched_time" required></label>
@@ -111,6 +98,23 @@
         <label>Vehicle <select name="vehicle_reg" id="d-vehicle"><option value="">&mdash; Select &mdash;</option></select></label>
         <label>Driver name <input type="text" name="driver_name" placeholder="Driver name"></label>
         <label>Notes <textarea name="notes" rows="2" placeholder="Optional notes"></textarea></label>
+      </div>
+      <div class="card">
+        <h3>Capture delivery note / proof</h3>
+        <div class="photo-widget" data-target="photo-dispatch">
+          <div class="photo-box" id="photo-dispatch">
+            <div class="photo-empty">
+              <span class="cam-icon">&#128247;</span>
+              <b>Capture delivery note / proof</b>
+              <div class="photo-btns">
+                <label for="cam-disp" class="btn-cam">Take photo</label>
+                <label for="gal-disp" class="btn-cam ghost">Gallery</label>
+              </div>
+            </div>
+          </div>
+          <input type="file" accept="image/*" id="cam-disp" class="photo-input" capture="environment">
+          <input type="file" accept="image/*" id="gal-disp" class="photo-input">
+        </div>
       </div>
       <button type="submit" class="btn-save" id="btn-save-dispatch">Save Stock Dispatch</button>
     </form>

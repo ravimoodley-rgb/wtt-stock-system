@@ -163,32 +163,30 @@ bindQty('#form-dispatch', 'd-meter-opening', 'd-meter-closing', 'd-qty');
 
 // ---------------------------------------------------------------- photo capture
 $$('.photo-widget').forEach(widget => {
-  const input = widget.querySelector('.photo-input');
   const box = widget.querySelector('.photo-box');
-  widget.addEventListener('click', e => {
-    const actionBtn = e.target.closest('[data-action]');
-    if (!actionBtn) return;
-    if (actionBtn.dataset.action === 'gallery') input.removeAttribute('capture');
-    else input.setAttribute('capture', 'environment');
-    input.value = '';
-    input.click();
+  const key = widget.dataset.target === 'photo-receive' ? 'receive' : 'dispatch';
+  const emptyHtml = box.querySelector('.photo-empty') ? box.querySelector('.photo-empty').outerHTML : box.innerHTML;
+  box.dataset.emptyHtml = emptyHtml;
+  widget.querySelectorAll('label[for]').forEach(l => {
+    const inp = document.getElementById(l.htmlFor);
+    l.addEventListener('click', () => { if (inp) inp.value = ''; });
   });
-  input.addEventListener('change', async () => {
-    const file = input.files && input.files[0];
-    if (!file) return;
-    try {
-      const dataUrl = await downscale(file);
-      const target = widget.dataset.target;
-      state.photos[target === 'photo-receive' ? 'receive' : 'dispatch'] = dataUrl;
-      box.innerHTML = `<img src="${dataUrl}" alt="captured document">
-        <button type="button" class="photo-remove" title="Remove photo">&#10005;</button>`;
-      box.querySelector('.photo-remove').addEventListener('click', e => {
-        e.stopPropagation();
-        state.photos[target === 'photo-receive' ? 'receive' : 'dispatch'] = null;
-        box.innerHTML = box.dataset.empty;
-      });
-      box.dataset.empty = box.innerHTML;
-    } catch (_) { alert('Could not read that image. Try another.'); }
+  widget.querySelectorAll('.photo-input').forEach(input => {
+    input.addEventListener('change', async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await downscale(file);
+        state.photos[key] = dataUrl;
+        box.innerHTML = `<img src="${dataUrl}" alt="captured document">
+          <button type="button" class="photo-remove" title="Remove photo">&#10005;</button>`;
+        box.querySelector('.photo-remove').addEventListener('click', e => {
+          e.stopPropagation();
+          state.photos[key] = null;
+          box.innerHTML = emptyHtml;
+        });
+      } catch (_) { alert('Could not read that image. Try another.'); }
+    });
   });
 });
 
@@ -242,9 +240,31 @@ function setSaving(btn, on) {
   btn.textContent = on ? 'Saving…' : btn.dataset.label;
 }
 
+function showErr(msg) {
+  const strip = $('#err-strip');
+  strip.textContent = msg;
+  strip.classList.remove('hidden');
+  clearTimeout(strip._t);
+  strip._t = setTimeout(() => strip.classList.add('hidden'), 6000);
+}
+
+function validateForm(form) {
+  if (form.checkValidity()) return true;
+  const emptySelect = Array.from(form.querySelectorAll('select[required]')).find(s => s.options.length <= 1);
+  if (emptySelect) {
+    const label = emptySelect.closest('label');
+    const name = label ? label.textContent.trim().replace(/\s+/g, ' ') : 'Select';
+    showErr('No "' + name + '" options available. Add this reference data in the Stock System admin first, then sign out and back in.');
+  } else {
+    form.reportValidity();
+    showErr('Please complete the highlighted fields before saving.');
+  }
+  return false;
+}
+
 async function submitReceive() {
   const form = $('#form-receive');
-  if (!form.reportValidity()) return;
+  if (!validateForm(form)) return;
   const btn = $('#btn-save-receive');
   setSaving(btn, true);
   try {
@@ -261,7 +281,7 @@ async function submitReceive() {
 
 async function submitDispatch() {
   const form = $('#form-dispatch');
-  if (!form.reportValidity()) return;
+  if (!validateForm(form)) return;
   const btn = $('#btn-save-dispatch');
   setSaving(btn, true);
   try {
@@ -278,7 +298,7 @@ async function submitDispatch() {
 
 function resetPhoto(boxSel) {
   const box = $(boxSel);
-  if (box.dataset.empty) box.innerHTML = box.dataset.empty;
+  if (box && box.dataset.emptyHtml) box.innerHTML = box.dataset.emptyHtml;
 }
 
 function showSuccess(title, docNo, key, waMsg, warning) {
