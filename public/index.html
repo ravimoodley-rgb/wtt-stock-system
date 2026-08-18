@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Witbank Tank Terminals</title>
   <link rel="stylesheet" href="styles.css?v=36">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
   <div id="login-screen">
@@ -91,5 +94,10 @@
 
   <div id="toast" hidden></div>
   <script src="app.js?v=53"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+  </script>
 </body>
 </html>

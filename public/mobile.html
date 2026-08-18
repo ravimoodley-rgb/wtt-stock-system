@@ -10,6 +10,8 @@
 <title>WTT Mobile &mdash; Stock Capture</title>
 <link rel="stylesheet" href="mobile.css">
 <link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body>
 
@@ -144,5 +146,10 @@
 </div>
 
 <script src="mobile.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
 </body>
 </html>
