@@ -207,60 +207,48 @@ async function renderDashboard(content) {
     </div>`;
   }).join('') : '<div class="muted">No tanks yet.</div>';
 
-  const recentHtml = d.recent.length ? d.recent.map(r => {
-    const tag = { receipt: 'tag-in', dispatch: 'tag-out', transfer: 'tag-move', adjustment: 'tag-move' }[r.type] || '';
-    const label = { receipt: 'Received', dispatch: 'Dispatched', transfer: 'Transfer', adjustment: 'Adjustment' }[r.type];
+  const recRows = d.recent.filter(r => r.type === 'receipt');
+  const receivedHtml = recRows.length ? recRows.map(r => {
     const when = new Date(r.ts + (r.ts.length === 10 ? 'T00:00' : '')).toLocaleString('en-ZA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-    return `<tr>
-      <td><span class="tag ${tag}">${label}</span></td>
-      <td><b>${esc(r.doc || '—')}</b></td>
-      <td>${fmtQty(r.qty, r.unit)}</td>
-      <td class="muted">${when}</td>
-      <td class="muted">${esc(r.operator || '')}</td>
-    </tr>`;
-  }).join('') : '<tr class="empty-row"><td colspan="5">No recent movements.</td></tr>';
+    return `<div class="recent-line">
+      <b>${esc(r.doc || '—')}</b>
+      <span>${fmtQty(r.qty, r.unit)}</span>
+      <span class="muted">${when}</span>
+    </div>`;
+  }).join('') : '<div class="muted">No receipts yet.</div>';
+
+  const disRows = d.recent.filter(r => r.type === 'dispatch');
+  const dispatchedHtml = disRows.length ? disRows.map(r => {
+    const when = new Date(r.ts + (r.ts.length === 10 ? 'T00:00' : '')).toLocaleString('en-ZA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return `<div class="recent-line">
+      <b>${esc(r.doc || '—')}</b>
+      <span>${fmtQty(r.qty, r.unit)}</span>
+      <span class="muted">${when}</span>
+    </div>`;
+  }).join('') : '<div class="muted">No dispatches yet.</div>';
 
   content.innerHTML = `
     <div class="grid cards">
-      <div class="stat-card"><div class="stat-label">Storage tanks</div><div class="stat-value">${t.tank_count}</div><div class="stat-sub stat-active">(Active)</div></div>
-      <div class="stat-card"><div class="stat-label">Product in storage</div><div class="stat-value">${fmtNum(t.total_qty)} L</div><div class="stat-sub">across all tanks</div></div>
-      <div class="stat-card"><div class="stat-label">Movements today</div><div class="stat-value">${d.movementsToday}</div><div class="stat-sub">receipts + dispatches</div></div>
-      <div class="stat-card"><div class="stat-label">Net stock movement</div><div class="stat-value">${fmtNum(rec.today_litres - dis.today_litres)} L</div><div class="stat-sub">received − dispatched today</div></div>
+      <div class="stat-card tint-pink"><div class="stat-label">Storage tanks</div><div class="stat-value">${t.tank_count}</div><div class="stat-sub stat-active">(Active)</div></div>
+      <div class="stat-card tint-blue"><div class="stat-label">Product in storage</div><div class="stat-value">${fmtNum(t.total_qty)} L</div><div class="stat-sub">(All active tanks)</div></div>
+      <div class="stat-card tint-amber"><div class="stat-label">Movements today</div><div class="stat-value">${d.movementsToday}</div><div class="stat-sub">(Received + Dispatch)</div></div>
+      <div class="stat-card tint-green"><div class="stat-label">Net stock movement</div><div class="stat-value">${fmtNum(rec.today_litres - dis.today_litres)} L</div><div class="stat-sub">(Overall)</div></div>
     </div>
-    <div class="card">
+    <div class="card" style="margin-top:16px">
       <div class="content-head">
-        <div class="card-title" style="margin:0">Tank volumes</div>
-        <div class="muted">fill level per tank</div>
+        <div class="card-title" style="margin:0">Tank Volume Levels</div>
       </div>
       <div class="tank-chart">${tankChartHtml}</div>
     </div>
     <div class="grid cols-2" style="align-items:start">
       <div class="card">
-        <div class="card-title">Stock received</div>
-        <div class="dash-overview">
-          <div class="dash-metric"><b>${fmtQty(rec.litres, 'L')}</b><span class="muted">total received</span></div>
-          <div class="dash-metric"><b>${fmtQty(rec.today_litres, 'L')}</b><span class="muted">received today</span></div>
-          <div class="dash-metric"><b>${rec.docs}</b><span class="muted">receipts</span></div>
-        </div>
+        <div class="card-title">Stock Received Alerts</div>
+        <div class="recent-list">${receivedHtml}</div>
       </div>
       <div class="card">
-        <div class="card-title">Stock dispatched</div>
-        <div class="dash-overview">
-          <div class="dash-metric"><b>${fmtQty(dis.litres, 'L')}</b><span class="muted">total dispatched</span></div>
-          <div class="dash-metric"><b>${fmtQty(dis.today_litres, 'L')}</b><span class="muted">dispatched today</span></div>
-          <div class="dash-metric"><b>${dis.docs}</b><span class="muted">dispatches</span></div>
-        </div>
+        <div class="card-title">Stock Dispatch Alerts</div>
+        <div class="recent-list">${dispatchedHtml}</div>
       </div>
-    </div>
-    <div class="card">
-      <div class="content-head">
-        <div class="card-title" style="margin:0">Recent movements</div>
-        <button class="btn btn-outline btn-sm" onclick="go('reports')">View movement report →</button>
-      </div>
-      <div class="table-wrap"><table class="data">
-        <thead><tr><th>Type</th><th>Document</th><th>Quantity</th><th>Date / time</th><th>Operator</th></tr></thead>
-        <tbody>${recentHtml}</tbody>
-      </table></div>
     </div>`;
 }
 
