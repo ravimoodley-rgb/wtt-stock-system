@@ -114,7 +114,7 @@ const titles = {
   dispatches: 'Stock Dispatch', transfers: 'Transfers', adjustments: 'Dips & Adjustments',
   reports: 'Reports', customers: 'Customers', suppliers: 'Suppliers',
   products: 'Products', transporters: 'Transporters', drivers: 'Drivers', vehicles: 'Vehicles',
-  users: 'Users', audit: 'Audit Log'
+  users: 'Users', whatsapp: 'WhatsApp Alerts', audit: 'Audit Log'
 };
 
 async function go(section) {
@@ -146,6 +146,7 @@ async function go(section) {
       case 'drivers': return await renderDrivers(content);
       case 'vehicles': return await renderVehicles(content);
       case 'users': return await renderUsers(content);
+      case 'whatsapp': return await renderWhatsApp(content);
       case 'audit': return await renderAudit(content);
     }
   } catch (err) {
@@ -1193,9 +1194,98 @@ async function renderUsers(content) {
     </table></div>`;
 }
 
+async function renderWhatsApp(content) {
+  let cfg;
+  try { cfg = await api('/whatsapp/config'); } catch { cfg = null; }
+  if (!cfg) {
+    content.innerHTML = `<div class="error-msg">Could not load WhatsApp config.</div>`;
+    return;
+  }
+  content.innerHTML = `
+    <div class="content-head">
+      <div class="muted">Send stock received / stock dispatch alerts to a WhatsApp group</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">WhatsApp Business Cloud API settings</div>
+        <form class="form-grid" id="wa-form">
+          <label class="full" style="flex-direction:row;align-items:center;gap:8px">
+            <input type="checkbox" name="enabled" id="wa-enabled" ${cfg.enabled ? 'checked' : ''} style="width:auto">
+            Enable WhatsApp alerts
+          </label>
+          <label>Phone Number ID <input name="phone_number_id" value="${esc(cfg.phone_number_id)}" placeholder="e.g. 123456789012345"></label>
+          <label>Recipient / group number <input name="recipient" value="${esc(cfg.recipient)}" placeholder="e.g. 27820000000 (no +, no spaces)"></label>
+          <label class="full">Access token
+            <input name="access_token" type="password" placeholder="${cfg.token_masked ? 'Existing: ' + esc(cfg.token_masked) : 'Paste system user access token'}" autocomplete="off">
+            <span class="muted" style="font-size:12px">Leave blank to keep the existing token.</span>
+          </label>
+          <label>Template — stock received <input name="template_received" value="${esc(cfg.template_received)}"></label>
+          <label>Template — stock dispatch <input name="template_dispatch" value="${esc(cfg.template_dispatch)}"></label>
+          <label>Language code <input name="language" value="${esc(cfg.language)}" placeholder="en_US"></label>
+          <div class="form-actions full">
+            <button type="submit" class="btn btn-primary">Save settings</button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-title">Test alerts</div>
+        <p class="muted" style="font-size:13px;margin-bottom:14px">Send a test message to the recipient/group with sample data. Templates must be created and approved in Meta first.</p>
+        <div class="flex" style="gap:10px">
+          <button class="btn btn-success" id="wa-test-received">Test stock received</button>
+          <button class="btn btn-outline" id="wa-test-dispatch">Test stock dispatch</button>
+        </div>
+        <div id="wa-test-result" class="muted" style="margin-top:14px;font-size:13px"></div>
+        <div class="card-title" style="margin-top:20px">Template requirements</div>
+        <ol class="wa-steps">
+          <li>In Meta Business Suite → WhatsApp → Message templates, create two templates:
+            <b>stock_received</b> and <b>stock_dispatched</b>.</li>
+          <li><b>stock_received</b> body: <code>{{1}} received: {{2}} {{3}} into {{4}}</code></li>
+          <li><b>stock_dispatched</b> body: <code>{{1}} dispatched: {{2}} {{3}} from {{4}} to {{5}}</code></li>
+          <li>Get the phone number ID and system-user access token from your WhatsApp Business App (Meta for Developers).</li>
+          <li>Recipient/group number must be international format, e.g. <code>27820000000</code>.</li>
+        </ol>
+      </div>
+    </div>`;
+
+  $('#wa-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const body = {
+      enabled: f.get('enabled') === 'on',
+      phone_number_id: f.get('phone_number_id'),
+      recipient: f.get('recipient'),
+      template_received: f.get('template_received'),
+      template_dispatch: f.get('template_dispatch'),
+      language: f.get('language')
+    };
+    const tok = f.get('access_token');
+    if (tok && tok.trim()) body.access_token = tok.trim();
+    try {
+      await api('/whatsapp/config', 'PUT', body);
+      toast('WhatsApp settings saved', 'success');
+      go('whatsapp');
+    } catch (err) { toast(err.message, 'error'); }
+  });
+
+  $('#wa-test-received').addEventListener('click', () => testWhatsApp('received'));
+  $('#wa-test-dispatch').addEventListener('click', () => testWhatsApp('dispatch'));
+}
+
+async function testWhatsApp(kind) {
+  const el = $('#wa-test-result');
+  el.textContent = 'Sending…';
+  try {
+    const r = await api('/whatsapp/test', 'POST', { kind });
+    el.textContent = 'Sent successfully' + (r.result && r.result.id ? ' · Message ID ' + r.result.id : '');
+    el.style.color = 'var(--success)';
+  } catch (err) {
+    el.textContent = err.message;
+    el.style.color = 'var(--danger)';
+  }
+}
+
 function userModal(id) {
   const list = JSON.parse(sessionStorage.getItem('wtt_users') || '[]');
-  const u = list.find(x => x.id === id) || {};
   openModal(id ? 'Edit user' : 'Add user', `
     <form class="form-grid" id="user-form">
       <label>Full name <input name="full_name" value="${esc(u.full_name || '')}" required></label>

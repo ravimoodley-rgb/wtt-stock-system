@@ -5,6 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const { db, hashPassword, makeSalt, now, nextDocNo, log } = require('./db');
+const { getConfig, sendTemplate, notifyStockReceived, notifyStockDispatched } = require('./whatsapp');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -488,6 +489,8 @@ app.post('/api/receipts', auth, role('Administrator','Manager','Supervisor','Dis
     db.exec('COMMIT');
     log(req.user, 'CREATE', 'receipt', r.lastInsertRowid, b);
     const over = tank.max_level != null && (tank.current_qty + qty) > tank.max_level;
+    const productName = (db.prepare('SELECT name FROM products WHERE id=?').get(product_id) || {}).name || '';
+    notifyStockReceived({ receipt_no, product: productName, qty, unit, tank: tank.code }).catch(() => {});
     res.json({ id: r.lastInsertRowid, receipt_no, warning: over ? `Tank ${tank.code} is now above its max level (${tank.max_level} ${unit}).` : null });
   } catch (e) {
     db.exec('ROLLBACK');
@@ -559,6 +562,9 @@ app.post('/api/dispatches', auth, role('Administrator','Manager','Supervisor','D
     db.prepare('UPDATE tanks SET current_qty = current_qty - ? WHERE id=?').run(qty, tank_id);
     db.exec('COMMIT');
     log(req.user, 'CREATE', 'dispatch', r.lastInsertRowid, b);
+    const productName = (db.prepare('SELECT name FROM products WHERE id=?').get(product_id) || {}).name || '';
+    const customer = b.customer_id ? (db.prepare('SELECT name FROM customers WHERE id=?').get(b.customer_id) || {}).name : '';
+    notifyStockDispatched({ dispatch_no, product: productName, qty, unit, tank: tank.code, customer: customer || bodyStr(b.destination) || '' }).catch(() => {});
     res.json({ id: r.lastInsertRowid, dispatch_no });
   } catch (e) {
     db.exec('ROLLBACK');
@@ -827,6 +833,52 @@ app.put('/api/settings', auth, role('Administrator'), (req, res) => {
   }
   log(req.user, 'UPDATE', 'settings', null, { facility_name });
   res.json({ ok: true });
+});
+
+// ---------------------------------------------------------------- whatsapp alerts
+function upsertSetting(key, value) {
+  db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value`).run(key, String(value));
+}
+
+app.get('/api/whatsapp/config', auth, role('Administrator'), (req, res) => {
+  const c = getConfig();
+  res.json({
+    enabled: c.enabled,
+    phone_number_id: c.phone_number_id,
+    recipient: c.recipient,
+    template_received: c.templateReceived,
+    template_dispatch: c.templateDispatch,
+    language: c.language,
+    token_masked: c.access_token ? c.access_token.slice(0, 6) + '…' + c.access_token.slice(-4) : ''
+  });
+});
+
+app.put('/api/whatsapp/config', auth, role('Administrator'), (req, res) => {
+  const b = req.body || {};
+  if (b.enabled !== undefined) upsertSetting('wa_enabled', b.enabled ? '1' : '0');
+  if (b.phone_number_id !== undefined) upsertSetting('wa_phone_number_id', bodyStr(b.phone_number_id) || '');
+  if (b.recipient !== undefined) upsertSetting('wa_recipient', bodyStr(b.recipient) || '');
+  if (b.template_received !== undefined) upsertSetting('wa_template_received', bodyStr(b.template_received) || 'stock_received');
+  if (b.template_dispatch !== undefined) upsertSetting('wa_template_dispatch', bodyStr(b.template_dispatch) || 'stock_dispatched');
+  if (b.language !== undefined) upsertSetting('wa_language', bodyStr(b.language) || 'en_US');
+  if (b.access_token !== undefined && bodyStr(b.access_token)) upsertSetting('wa_access_token', b.access_token.trim());
+  log(req.user, 'UPDATE', 'settings', null, { whatsapp: true });
+  res.json({ ok: true });
+});
+
+app.post('/api/whatsapp/test', auth, role('Administrator'), async (req, res) => {
+  const kind = bodyStr(req.body.kind) === 'dispatch' ? 'dispatch' : 'received';
+  const c = getConfig();
+  if (!c.recipient) return res.status(400).json({ error: 'Set the recipient number and save first.' });
+  const payload = kind === 'dispatch'
+    ? { dispatch_no: 'DEL-000001', product: 'Diesel 50ppm', qty: 5000, unit: 'litres', tank: 'T-101', customer: 'Test Customer' }
+    : { receipt_no: 'GRV-000001', product: 'Diesel 50ppm', qty: 10000, unit: 'litres', tank: 'T-101' };
+  const result = kind === 'dispatch'
+    ? await notifyStockDispatched(payload)
+    : await notifyStockReceived(payload);
+  if (result.error) return res.status(502).json({ error: 'WhatsApp API error: ' + (result.error.message || JSON.stringify(result.error)) });
+  res.json({ ok: true, result });
 });
 
 // ---------------------------------------------------------------- error handling

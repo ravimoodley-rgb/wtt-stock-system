@@ -317,3 +317,10 @@ form.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .flex { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .grow { flex: 1; }
 b.num { font-variant-numeric: tabular-nums; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.wa-steps { margin: 0 0 0 18px; padding: 0; font-size: 13px; color: var(--muted); }
+.wa-steps li { margin-bottom: 8px; }
+.wa-steps code { background: #f0f2f4; padding: 2px 5px; border-radius: 4px; font-size: 12px; }
