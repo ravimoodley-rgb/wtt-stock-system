@@ -140,10 +140,17 @@ app.get('/api/dashboard', auth, (req, res) => {
            COALESCE(SUM(CASE WHEN product_id IS NULL THEN 1 ELSE 0 END),0) AS empty_tanks
     FROM tanks`).get();
 
-  const stockByProduct = db.prepare(`
-    SELECT p.name AS product, p.unit, SUM(t.current_qty) AS qty
-    FROM tanks t JOIN products p ON p.id = t.product_id
-    GROUP BY p.id ORDER BY qty DESC`).all();
+  const receivedOverview = db.prepare(`
+    SELECT COUNT(*) AS docs,
+           COALESCE(SUM(qty),0) AS litres,
+           COALESCE(SUM(CASE WHEN date(received_at)=date('now','localtime') THEN qty ELSE 0 END),0) AS today_litres
+    FROM receipts`).get();
+
+  const dispatchedOverview = db.prepare(`
+    SELECT COUNT(*) AS docs,
+           COALESCE(SUM(qty),0) AS litres,
+           COALESCE(SUM(CASE WHEN date(dispatched_at)=date('now','localtime') THEN qty ELSE 0 END),0) AS today_litres
+    FROM dispatches`).get();
 
   const tankVolumes = db.prepare(`
     SELECT t.code, t.name, p.name AS product, t.current_qty, t.capacity, t.min_level, t.max_level,
@@ -184,7 +191,7 @@ app.get('/api/dashboard', auth, (req, res) => {
     SELECT (SELECT COUNT(*) FROM receipts WHERE date(received_at)=date('now','localtime')) +
            (SELECT COUNT(*) FROM dispatches WHERE date(dispatched_at)=date('now','localtime')) AS c`).get().c;
 
-  res.json({ totals, stockByProduct, tankVolumes, alerts, recent: recentRich, movementsToday });
+  res.json({ totals, tankVolumes, received: receivedOverview, dispatched: dispatchedOverview, recent: recentRich, movementsToday });
 });
 
 // ---------------------------------------------------------------- products

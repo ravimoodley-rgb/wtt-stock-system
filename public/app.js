@@ -191,24 +191,8 @@ function setVal(sel, val) { if ($(sel)) $(sel).value = val ?? ''; }
 async function renderDashboard(content) {
   const d = await api('/dashboard');
   const t = d.totals;
-  const alertHtml = d.alerts.length
-    ? d.alerts.map(a => `
-      <div class="alert-item ${a.level}">
-        <b>${esc(a.code)}</b>
-        <span>${fmtQty(a.current_qty, 'L')} of ${a.level === 'low' ? 'min ' + fmtNum(a.min_level) : 'max ' + fmtNum(a.max_level)} L — ${esc(a.product || 'no product')}</span>
-      </div>`).join('')
-    : '<div class="muted">No low or high stock alerts.</div>';
-
-  const maxQty = Math.max(...d.stockByProduct.map(p => p.qty), 1);
-  const stockBars = d.stockByProduct.map(p => `
-    <div class="mb">
-      <div class="flex" style="justify-content:space-between">
-        <b>${esc(p.product)}</b><span class="muted">${fmtQty(p.qty, p.unit)}</span>
-      </div>
-      <div class="bar-track grow" style="width:100%;margin-top:4px">
-        <div class="bar-fill" style="width:${Math.max(1, (p.qty / maxQty) * 100)}%"></div>
-      </div>
-    </div>`).join('');
+  const rec = d.received || { docs: 0, litres: 0, today_litres: 0 };
+  const dis = d.dispatched || { docs: 0, litres: 0, today_litres: 0 };
 
   const tankChartHtml = d.tankVolumes.length ? d.tankVolumes.map(t => {
     const available = t.capacity != null ? Math.max(0, t.capacity - t.current_qty) : null;
@@ -241,7 +225,7 @@ async function renderDashboard(content) {
       <div class="stat-card"><div class="stat-label">Storage tanks</div><div class="stat-value">${t.tank_count}</div><div class="stat-sub">active</div></div>
       <div class="stat-card"><div class="stat-label">Product in storage</div><div class="stat-value">${fmtNum(t.total_qty)} L</div><div class="stat-sub">across all tanks</div></div>
       <div class="stat-card"><div class="stat-label">Movements today</div><div class="stat-value">${d.movementsToday}</div><div class="stat-sub">receipts + dispatches</div></div>
-      <div class="stat-card"><div class="stat-label">Stock alerts</div><div class="stat-value" style="color:${d.alerts.length ? 'var(--danger)' : 'var(--success)'}">${d.alerts.length}</div><div class="stat-sub">low / high level</div></div>
+      <div class="stat-card"><div class="stat-label">Net stock movement</div><div class="stat-value">${fmtNum(rec.today_litres - dis.today_litres)} L</div><div class="stat-sub">received − dispatched today</div></div>
     </div>
     <div class="card">
       <div class="content-head">
@@ -252,12 +236,20 @@ async function renderDashboard(content) {
     </div>
     <div class="grid cols-2" style="align-items:start">
       <div class="card">
-        <div class="card-title">Stock alerts</div>
-        ${alertHtml}
+        <div class="card-title">Stock received</div>
+        <div class="dash-overview">
+          <div class="dash-metric"><b>${fmtQty(rec.litres, 'L')}</b><span class="muted">total received</span></div>
+          <div class="dash-metric"><b>${fmtQty(rec.today_litres, 'L')}</b><span class="muted">received today</span></div>
+          <div class="dash-metric"><b>${rec.docs}</b><span class="muted">receipts</span></div>
+        </div>
       </div>
       <div class="card">
-        <div class="card-title">Stock by product</div>
-        ${stockBars}
+        <div class="card-title">Stock dispatched</div>
+        <div class="dash-overview">
+          <div class="dash-metric"><b>${fmtQty(dis.litres, 'L')}</b><span class="muted">total dispatched</span></div>
+          <div class="dash-metric"><b>${fmtQty(dis.today_litres, 'L')}</b><span class="muted">dispatched today</span></div>
+          <div class="dash-metric"><b>${dis.docs}</b><span class="muted">dispatches</span></div>
+        </div>
       </div>
     </div>
     <div class="card">

@@ -143,6 +143,11 @@ body.role-Administrator .nav-drop.admin-only.open { display: block; }
 .stat-card .stat-value { font-size: 26px; font-weight: 800; color: var(--primary-dark); margin-top: 4px; }
 .stat-card .stat-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
+.dash-overview { display: flex; gap: 12px; flex-wrap: wrap; }
+.dash-metric { flex: 1 1 120px; display: flex; flex-direction: column; gap: 2px; }
+.dash-metric b { font-size: 20px; font-weight: 800; color: var(--primary-dark); }
+.dash-metric .muted { font-size: 12px; }
+
 .btn {
   display: inline-flex; align-items: center; gap: 6px; justify-content: center;
   background: var(--primary); color: #fff; border: none; border-radius: 6px;
