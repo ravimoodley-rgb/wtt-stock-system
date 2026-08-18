@@ -109,6 +109,7 @@ body.role-Administrator .nav-drop.admin-only.open { display: block; }
   background: rgba(255,255,255,.14); padding: 2px 8px; border-radius: 20px; color: #d9e7ec;
 }
 .sidebar-footer .btn { margin-bottom: 6px; width: 100%; }
+.photo-link { background: none; border: none; font-size: 15px; cursor: pointer; padding: 2px 6px; }
 
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .topbar {

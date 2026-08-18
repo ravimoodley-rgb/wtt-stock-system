@@ -435,7 +435,7 @@ function bindVehicleAutofill(formSel, vehicleId) {
 function receiptsTable(rows) {
   if (!rows.length) return '<table class="data"><tr class="empty-row"><td>No receipts found.</td></tr></table>';
   return `<table class="data" id="export-table-receipts">
-    <thead><tr><th>Receipt no</th><th>Date</th><th>Product</th><th>Tank</th><th>Supplier</th><th>Transporter</th><th>Qty</th><th>Vehicle</th><th>Driver</th><th>Waybill</th><th>Operator</th></tr></thead>
+    <thead><tr><th>Receipt no</th><th>Date</th><th>Product</th><th>Tank</th><th>Supplier</th><th>Transporter</th><th>Qty</th><th>Vehicle</th><th>Driver</th><th>Waybill</th><th>Doc</th><th>Operator</th></tr></thead>
     <tbody>${rows.map(r => `<tr>
       <td><b>${esc(r.receipt_no)}</b></td>
       <td>${esc(String(r.received_at).slice(0, 16).replace('T', ' '))}</td>
@@ -447,6 +447,7 @@ function receiptsTable(rows) {
       <td>${esc(r.vehicle_reg || '—')}</td>
       <td>${esc(r.driver_name || '—')}</td>
       <td>${esc(r.waybill_no || '—')}</td>
+      <td>${r.photo ? `<button class="photo-link" data-kind="receipts" data-id="${r.id}">📷</button>` : '<span class="muted">—</span>'}</td>
       <td class="muted">${esc(r.operator || '')}</td>
     </tr>`).join('')}</tbody></table>`;
 }
@@ -514,7 +515,7 @@ async function renderDispatches(content) {
 function dispatchesTable(rows) {
   if (!rows.length) return '<table class="data"><tr class="empty-row"><td>No dispatches found.</td></tr></table>';
   return `<table class="data" id="export-table-dispatches">
-    <thead><tr><th>Dispatch no</th><th>Date</th><th>Product</th><th>Tank</th><th>Customer</th><th>Transporter</th><th>Qty</th><th>Vehicle</th><th>Driver</th><th>Delivery no</th><th>Operator</th></tr></thead>
+    <thead><tr><th>Dispatch no</th><th>Date</th><th>Product</th><th>Tank</th><th>Customer</th><th>Transporter</th><th>Qty</th><th>Vehicle</th><th>Driver</th><th>Delivery no</th><th>Doc</th><th>Operator</th></tr></thead>
     <tbody>${rows.map(r => `<tr>
       <td><b>${esc(r.dispatch_no)}</b></td>
       <td>${esc(String(r.dispatched_at).slice(0, 16).replace('T', ' '))}</td>
@@ -526,9 +527,25 @@ function dispatchesTable(rows) {
       <td>${esc(r.vehicle_reg || '—')}</td>
       <td>${esc(r.driver_name || '—')}</td>
       <td>${esc(r.delivery_no || '—')}</td>
+      <td>${r.photo ? `<button class="photo-link" data-kind="dispatches" data-id="${r.id}">📷</button>` : '<span class="muted">—</span>'}</td>
       <td class="muted">${esc(r.operator || '')}</td>
     </tr>`).join('')}</tbody></table>`;
 }
+
+async function openPhoto(kind, id) {
+  try {
+    const res = await fetch(`/api/${kind}/${id}/photo`, { headers: { Authorization: 'Bearer ' + state.token } });
+    if (!res.ok) { toast('No photo available', 'error'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    openModal('Document photo', `<img src="${url}" style="max-width:100%;max-height:70vh;border-radius:8px" alt="captured document">`);
+  } catch (_) { toast('Could not load photo', 'error'); }
+}
+
+document.addEventListener('click', e => {
+  const link = e.target.closest('.photo-link');
+  if (link) openPhoto(link.dataset.kind, link.dataset.id);
+});
 
 async function submitDispatch(e) {
   e.preventDefault();

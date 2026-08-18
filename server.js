@@ -2,6 +2,7 @@
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 
 const { db, hashPassword, makeSalt, now, nextDocNo, log } = require('./db');
@@ -10,10 +11,13 @@ const { getConfig, sendTemplate, notifyStockReceived, notifyStockDispatched } = 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const SESSION_DAYS = 7;
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 app.disable('x-powered-by');
 app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : false);
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '15mb' }));
 
 // ---------------------------------------------------------------- security headers
 app.use((req, res, next) => {
@@ -91,6 +95,29 @@ function role(...roles) {
 
 function bodyStr(v) {
   return v === undefined || v === null ? null : String(v).trim() || null;
+}
+
+const PHOTO_MIME = {
+  'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'image/heif': 'heif'
+};
+function savePhoto(dataUrl, subdir) {
+  if (!dataUrl || typeof dataUrl !== 'string') return null;
+  const m = dataUrl.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+  if (!m) return null;
+  const ext = PHOTO_MIME[m[1]];
+  if (!ext) return null;
+  const buf = Buffer.from(m[2], 'base64');
+  if (buf.length < 20 || buf.length > 12 * 1024 * 1024) return null;
+  const dir = path.join(UPLOADS_DIR, subdir);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const name = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
+  fs.writeFileSync(path.join(dir, name), buf);
+  return name;
+}
+function photoPath(subdir, name) {
+  if (!name) return null;
+  const p = path.join(UPLOADS_DIR, subdir, path.basename(name));
+  return fs.existsSync(p) ? p : null;
 }
 
 function pwOk(pw) {
@@ -478,13 +505,14 @@ app.post('/api/receipts', auth, role('Administrator','Manager','Supervisor','Dis
   if (tank.product_id !== product_id) return res.status(400).json({ error: `Product does not match tank product (${tank.product})` });
   const unit = bodyStr(b.unit) || tank.product_unit || 'litres';
   const receipt_no = nextDocNo('GRV-', 'receipts');
+  const photo = savePhoto(b.photo, 'receipts');
   db.exec('BEGIN');
   try {
-    const r = db.prepare(`INSERT INTO receipts (receipt_no, product_id, tank_id, supplier_id, transporter_id, qty, unit, loaded_litres, meter_opening, meter_closing, vehicle_reg, driver_name, waybill_no, source_ref, received_at, notes, created_by)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    const r = db.prepare(`INSERT INTO receipts (receipt_no, product_id, tank_id, supplier_id, transporter_id, qty, unit, loaded_litres, meter_opening, meter_closing, vehicle_reg, driver_name, waybill_no, source_ref, received_at, notes, photo, created_by)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
       .run(receipt_no, product_id, tank_id, b.supplier_id ?? null, b.transporter_id ?? null, qty, unit, loaded, mOpen, mClose,
            bodyStr(b.vehicle_reg), bodyStr(b.driver_name), bodyStr(b.waybill_no), bodyStr(b.source_ref),
-           bodyStr(b.received_at) || now(), bodyStr(b.notes), req.user.id);
+           bodyStr(b.received_at) || now(), bodyStr(b.notes), photo, req.user.id);
     db.prepare('UPDATE tanks SET current_qty = current_qty + ? WHERE id=?').run(qty, tank_id);
     db.exec('COMMIT');
     log(req.user, 'CREATE', 'receipt', r.lastInsertRowid, b);
@@ -502,6 +530,22 @@ app.get('/api/receipts/:id', auth, (req, res) => {
   const r = db.prepare(`SELECT * FROM receipts WHERE id=?`).get(req.params.id);
   if (!r) return res.status(404).json({ error: 'Not found' });
   res.json(r);
+});
+
+app.get('/api/receipts/:id/photo', auth, (req, res) => {
+  const r = db.prepare('SELECT photo FROM receipts WHERE id=?').get(req.params.id);
+  const p = r && photoPath('receipts', r.photo);
+  if (!p) return res.status(404).json({ error: 'No photo' });
+  res.setHeader('Cache-Control', 'private, max-age=3600');
+  res.sendFile(p);
+});
+
+app.get('/api/dispatches/:id/photo', auth, (req, res) => {
+  const r = db.prepare('SELECT photo FROM dispatches WHERE id=?').get(req.params.id);
+  const p = r && photoPath('dispatches', r.photo);
+  if (!p) return res.status(404).json({ error: 'No photo' });
+  res.setHeader('Cache-Control', 'private, max-age=3600');
+  res.sendFile(p);
 });
 
 // ---------------------------------------------------------------- dispatches (stock dispatched)
@@ -551,14 +595,15 @@ app.post('/api/dispatches', auth, role('Administrator','Manager','Supervisor','D
   if (qty > tank.current_qty) return res.status(400).json({ error: `Insufficient stock in ${tank.code}. Available: ${tank.current_qty} ${tank.product_unit}.` });
   const unit = bodyStr(b.unit) || tank.product_unit || 'litres';
   const dispatch_no = nextDocNo('DEL-', 'dispatches');
+  const photo = savePhoto(b.photo, 'dispatches');
   db.exec('BEGIN');
   try {
-    const r = db.prepare(`INSERT INTO dispatches (dispatch_no, product_id, tank_id, customer_id, transporter_id, qty, unit, meter_opening, meter_closing, vehicle_reg, driver_name, delivery_no, order_no, destination, dispatched_at, notes, created_by)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    const r = db.prepare(`INSERT INTO dispatches (dispatch_no, product_id, tank_id, customer_id, transporter_id, qty, unit, meter_opening, meter_closing, vehicle_reg, driver_name, delivery_no, order_no, destination, dispatched_at, notes, photo, created_by)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
       .run(dispatch_no, product_id, tank_id, b.customer_id ?? null, b.transporter_id ?? null, qty, unit,
            mOpen, mClose,
            bodyStr(b.vehicle_reg), bodyStr(b.driver_name), bodyStr(b.delivery_no), bodyStr(b.order_no),
-           bodyStr(b.destination), bodyStr(b.dispatched_at) || now(), bodyStr(b.notes), req.user.id);
+           bodyStr(b.destination), bodyStr(b.dispatched_at) || now(), bodyStr(b.notes), photo, req.user.id);
     db.prepare('UPDATE tanks SET current_qty = current_qty - ? WHERE id=?').run(qty, tank_id);
     db.exec('COMMIT');
     log(req.user, 'CREATE', 'dispatch', r.lastInsertRowid, b);

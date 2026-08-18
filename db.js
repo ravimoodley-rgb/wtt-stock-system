@@ -201,7 +201,8 @@ const recMigrations = [
   ['loaded_litres', 'REAL'],
   ['meter_opening', 'REAL'],
   ['meter_closing', 'REAL'],
-  ['transporter_id', 'INTEGER']
+  ['transporter_id', 'INTEGER'],
+  ['photo', 'TEXT']
 ];
 for (const [name, ddl] of recMigrations) {
   if (!receiptsCols.includes(name)) db.exec(`ALTER TABLE receipts ADD COLUMN ${name} ${ddl}`);
@@ -215,6 +216,9 @@ if (!dispatchesCols.includes('meter_opening')) {
 }
 if (!dispatchesCols.includes('meter_closing')) {
   db.exec('ALTER TABLE dispatches ADD COLUMN meter_closing REAL');
+}
+if (!dispatchesCols.includes('photo')) {
+  db.exec('ALTER TABLE dispatches ADD COLUMN photo TEXT');
 }
 
 // vehicles: rebuild if it still has the old schema (driver_id/notes)

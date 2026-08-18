@@ -6,3 +6,4 @@ data/*
 .DS_Store
 login.json
 wtt-deploy.zip
+uploads/

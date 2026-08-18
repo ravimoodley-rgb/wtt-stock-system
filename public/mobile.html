@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e2233">
+<title>WTT Mobile &mdash; Stock Capture</title>
+<link rel="stylesheet" href="mobile.css">
+<link rel="manifest" href="/manifest.json">
+</head>
+<body>
+
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">W</span><span class="brand-name">Witbank Terminals <small>Stock Capture</small></span></div>
+    <div class="user">
+      <span class="user-name" id="user-name"></span>
+      <button id="btn-logout" class="btn-link" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="receive" type="button">Receive</button>
+    <button class="tab" data-tab="dispatch" type="button">Dispatch</button>
+  </nav>
+
+  <main class="screen" id="view-receive">
+    <form id="form-receive" class="capture-form" autocomplete="off">
+      <div class="card">
+        <h3>Stock Received &mdash; Receiving</h3>
+        <div class="photo-widget" data-target="photo-receive">
+          <input type="file" accept="image/*" class="photo-input" data-capture="camera">
+          <div class="photo-box" id="photo-receive">
+            <div class="photo-empty">
+              <span class="cam-icon">&#128247;</span>
+              <b>Capture waybill / delivery note</b>
+              <div class="photo-btns">
+                <button type="button" class="btn-cam" data-action="camera">Take photo</button>
+                <button type="button" class="btn-cam ghost" data-action="gallery">Gallery</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="field-row">
+          <label>Date <input type="date" name="received_date" required></label>
+          <label>Time <input type="time" name="received_time" required></label>
+        </div>
+        <label>Supplier <select name="supplier_id" required><option value="">&mdash; Select &mdash;</option></select></label>
+        <label>Bill of Lading / Waybill No <input type="text" name="waybill_no" placeholder="e.g. BOL 004712"></label>
+        <label>Product <select name="product_id" required><option value="">&mdash; Select product &mdash;</option></select></label>
+        <label>Tank <select name="tank_id" required><option value="">&mdash; Select tank &mdash;</option></select></label>
+        <label>Loaded litres (per BOL) <input type="number" name="loaded_litres" step="any" min="0" inputmode="decimal" placeholder="Litres from bill of lading"></label>
+        <div class="field-row">
+          <label>Meter opening <input type="number" name="meter_opening" step="any" min="0" inputmode="decimal"></label>
+          <label>Meter closing <input type="number" name="meter_closing" step="any" min="0" inputmode="decimal"></label>
+        </div>
+        <div class="qty-line">Received qty: <b id="recv-qty">0</b> L</div>
+        <label>Transporter <select name="transporter_id"><option value="">&mdash; Select &mdash;</option></select></label>
+        <label>Vehicle <select name="vehicle_reg" id="rec-vehicle"><option value="">&mdash; Select &mdash;</option></select></label>
+        <label>Driver name <input type="text" name="driver_name" placeholder="Driver name"></label>
+        <label>Notes <textarea name="notes" rows="2" placeholder="Optional notes"></textarea></label>
+      </div>
+      <button type="submit" class="btn-save" id="btn-save-receive">Save Stock Received</button>
+    </form>
+  </main>
+
+  <main class="screen hidden" id="view-dispatch">
+    <form id="form-dispatch" class="capture-form" autocomplete="off">
+      <div class="card">
+        <h3>Stock Dispatch &mdash; Customer Delivery</h3>
+        <div class="photo-widget" data-target="photo-dispatch">
+          <input type="file" accept="image/*" class="photo-input" data-capture="camera">
+          <div class="photo-box" id="photo-dispatch">
+            <div class="photo-empty">
+              <span class="cam-icon">&#128247;</span>
+              <b>Capture delivery note / proof</b>
+              <div class="photo-btns">
+                <button type="button" class="btn-cam" data-action="camera">Take photo</button>
+                <button type="button" class="btn-cam ghost" data-action="gallery">Gallery</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="field-row">
+          <label>Date <input type="date" name="dispatched_date" required></label>
+          <label>Time <input type="time" name="dispatched_time" required></label>
+        </div>
+        <label>Customer <select name="customer_id" required><option value="">&mdash; Select &mdash;</option></select></label>
+        <label>Delivery address / site <input type="text" name="destination" placeholder="Site or area"></label>
+        <div class="field-row">
+          <label>Customer order no <input type="text" name="order_no" placeholder="Optional"></label>
+          <label>Loading bill no <input type="text" name="delivery_no" placeholder="Optional"></label>
+        </div>
+        <label>Product <select name="product_id" required><option value="">&mdash; Select product &mdash;</option></select></label>
+        <label>Tank <select name="tank_id" required><option value="">&mdash; Select tank &mdash;</option></select></label>
+        <div class="field-row">
+          <label>Meter opening <input type="number" name="meter_opening" step="any" min="0" inputmode="decimal"></label>
+          <label>Meter closing <input type="number" name="meter_closing" step="any" min="0" inputmode="decimal"></label>
+        </div>
+        <div class="qty-line">Loaded qty: <b id="d-qty">0</b> L</div>
+        <label>Transporter <select name="transporter_id"><option value="">&mdash; Select &mdash;</option></select></label>
+        <label>Vehicle <select name="vehicle_reg" id="d-vehicle"><option value="">&mdash; Select &mdash;</option></select></label>
+        <label>Driver name <input type="text" name="driver_name" placeholder="Driver name"></label>
+        <label>Notes <textarea name="notes" rows="2" placeholder="Optional notes"></textarea></label>
+      </div>
+      <button type="submit" class="btn-save" id="btn-save-dispatch">Save Stock Dispatch</button>
+    </form>
+  </main>
+</div>
+
+<div id="login-view" class="hidden">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-mark">W</div>
+      <h1>WTT Mobile</h1>
+      <p>Stock capture &middot; Receiving &amp; Dispatch</p>
+    </div>
+    <form id="form-login" autocomplete="off">
+      <label>Username <input type="text" name="username" required autofocus></label>
+      <label>Password <input type="password" name="password" required></label>
+      <div class="err" id="login-err"></div>
+      <button type="submit" class="btn-save">Sign in</button>
+    </form>
+  </div>
+</div>
+
+<div id="success-overlay" class="hidden">
+  <div class="success-card">
+    <div class="success-check">&#10003;</div>
+    <h2 id="success-title">Saved</h2>
+    <p class="success-doc" id="success-doc"></p>
+    <p class="success-wa" id="success-wa"></p>
+    <div class="success-actions">
+      <button type="button" class="btn-save" id="btn-another">New entry</button>
+    </div>
+  </div>
+</div>
+
+<script src="mobile.js"></script>
+</body>
+</html>

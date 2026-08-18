@@ -1,0 +1,9 @@
+{
+  "name": "WTT Mobile — Stock Capture",
+  "short_name": "WTT Capture",
+  "start_url": "/mobile.html",
+  "display": "standalone",
+  "background_color": "#0e2233",
+  "theme_color": "#0e2233",
+  "description": "Stock received & dispatch capture with document photos for Witbank Tank Terminals"
+}
