@@ -1047,7 +1047,7 @@ function driverModal(id) {
       <label>Transporter
         <select name="transporter_id"><option value="">— Select transporter —</option>${transportersCache.map(t => `<option value="${t.id}" ${String(t.id) === String(d.transporter_id) ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
       </label>
-      <label class="full">Notes <textarea name="notes">${esc(d.notes || '')}</textarea></label>
+      <label class="full">Licence Expiry Date <input name="notes" type="date" value="${esc(d.notes || '')}"></label>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost btn-outline" onclick="closeModal()">Cancel</button>
         <button type="submit" class="btn btn-primary">Save</button>
@@ -1074,15 +1074,15 @@ async function deleteDriver(id) {
 async function renderDrivers(content) {
   content.innerHTML = `
     <div class="content-head">
-      <div class="muted">Tanker drivers and their haulage company.</div>
+      <div class="muted">Tanker Drivers | Transport Company</div>
       ${canWrite() ? '<button class="btn btn-transport" onclick="driverModal()">+ Add driver</button>' : ''}
     </div>
     <div class="table-wrap"><table class="data">
-      <thead><tr><th>Name</th><th>Phone</th><th>Transporter</th><th>Notes</th>${isAdmin() ? '<th></th>' : ''}</tr></thead>
+      <thead><tr><th>Name</th><th>Transporter</th><th>Phone</th><th>Licence Expiry Date</th>${isAdmin() ? '<th></th>' : ''}</tr></thead>
       <tbody>${driversCache.map(d => `<tr>
         <td><b>${esc(d.name)}</b></td>
-        <td>${esc(d.phone || '—')}</td>
         <td>${esc(d.transporter || '—')}</td>
+        <td>${esc(d.phone || '—')}</td>
         <td class="muted">${esc(d.notes || '')}</td>
         ${isAdmin() ? `<td><div class="flex"><button class="btn btn-sm btn-outline" onclick="driverModal(${d.id})">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteDriver(${d.id})">Del</button></div></td>` : ''}
       </tr>`).join('')}</tbody>
@@ -1095,8 +1095,8 @@ async function renderUsers(content) {
   const rows = users.map(u => `<tr>
     <td><b>${esc(u.full_name)}</b></td>
     <td>${esc(u.username)}</td>
-    <td><span class="pill pill-${u.role}">${esc(u.role)}</span></td>
-    <td>${u.active ? '<span class="tag tag-ok">Active</span>' : '<span class="tag tag-low">Disabled</span>'}</td>
+    <td>${esc(u.role)}</td>
+    <td>${u.active ? '<span class="status-active">Active</span>' : '<span class="status-inactive">Inactive</span>'}</td>
     <td class="muted">${esc(String(u.created_at).slice(0, 10))}</td>
     <td><div class="flex">
       <button class="btn btn-sm btn-outline" onclick="userModal(${u.id})">Edit</button>
@@ -1105,7 +1105,7 @@ async function renderUsers(content) {
   </tr>`).join('');
   content.innerHTML = `
     <div class="content-head">
-      <div class="muted">Manage system users and roles.</div>
+      <div class="muted">Manage System Users</div>
       <button class="btn btn-transport" onclick="userModal()">+ Add user</button>
     </div>
     <div class="table-wrap"><table class="data">
