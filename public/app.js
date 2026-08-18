@@ -401,6 +401,12 @@ async function renderReceipts(content) {
         <label>Transporter Name <select name="transporter_id">${transporterOptions()}</select></label>
         <label>Vehicle <select name="vehicle_reg" id="rec-vehicle">${vehicleOptions()}</select></label>
         <label>Driver Name <input name="driver_name" id="rec-driver" placeholder="Driver name"></label>
+        <label class="full">📷 Document photo
+          <input type="file" accept="image/*" class="photo-file">
+          <input type="hidden" name="photo">
+          <img class="photo-preview" hidden alt="document photo">
+          <button type="button" class="photo-clear btn btn-ghost btn-sm" hidden>Remove photo</button>
+        </label>
         <div class="form-actions"><button type="submit" class="btn btn-primary">Save Delivery</button></div>
       </form>` : ''}
     </div>`;
@@ -416,6 +422,7 @@ async function renderReceipts(content) {
     $('#meter_opening').addEventListener('input', updRecv);
     $('#meter_closing').addEventListener('input', updRecv);
     bindVehicleAutofill('#quick-receipt', 'rec-vehicle');
+    attachPhotoCapture($('#quick-receipt'));
     $('#quick-receipt').addEventListener('submit', submitReceipt);
   }
 }
@@ -495,6 +502,12 @@ async function renderDispatches(content) {
         <label>Transporter <select name="transporter_id">${transporterOptions()}</select></label>
         <label>Vehicle <select name="vehicle_reg" id="d-vehicle">${vehicleOptions()}</select></label>
         <label>Driver Name <input name="driver_name" id="d-driver" placeholder="Driver name"></label>
+        <label class="full">📷 Document photo
+          <input type="file" accept="image/*" class="photo-file">
+          <input type="hidden" name="photo">
+          <img class="photo-preview" hidden alt="document photo">
+          <button type="button" class="photo-clear btn btn-ghost btn-sm" hidden>Remove photo</button>
+        </label>
         <div class="form-actions"><button type="submit" class="btn btn-primary">Save Delivery</button></div>
       </form>` : ''}
     </div>`;
@@ -509,6 +522,7 @@ async function renderDispatches(content) {
     $('#d-meter-opening').addEventListener('input', updD);
     $('#d-meter-closing').addEventListener('input', updD);
     bindVehicleAutofill('#quick-dispatch', 'd-vehicle');
+    attachPhotoCapture($('#quick-dispatch'));
   }
 }
 
@@ -546,6 +560,47 @@ document.addEventListener('click', e => {
   const link = e.target.closest('.photo-link');
   if (link) openPhoto(link.dataset.kind, link.dataset.id);
 });
+
+function downscaleImage(file, maxDim = 1600, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width: w, height: h } = img;
+      const scale = Math.min(1, maxDim / Math.max(w, h));
+      w = Math.round(w * scale); h = Math.round(h * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => reject(new Error('invalid image'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function attachPhotoCapture(formEl) {
+  const file = formEl.querySelector('.photo-file');
+  if (!file) return;
+  file.addEventListener('change', async () => {
+    const f = file.files && file.files[0];
+    if (!f) return;
+    try {
+      const dataUrl = await downscaleImage(f);
+      formEl.querySelector('input[name=photo]').value = dataUrl;
+      const preview = formEl.querySelector('.photo-preview');
+      preview.src = dataUrl;
+      preview.hidden = false;
+      formEl.querySelector('.photo-clear').hidden = false;
+    } catch (_) { toast('Could not read image', 'error'); }
+  });
+  const clear = formEl.querySelector('.photo-clear');
+  if (clear) clear.addEventListener('click', () => {
+    file.value = '';
+    formEl.querySelector('input[name=photo]').value = '';
+    formEl.querySelector('.photo-preview').hidden = true;
+    clear.hidden = true;
+  });
+}
 
 async function submitDispatch(e) {
   e.preventDefault();

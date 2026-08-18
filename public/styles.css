@@ -213,6 +213,9 @@ form.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 }
 .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
 .form-grid textarea { resize: vertical; min-height: 60px; }
+.photo-file { border: 1.5px dashed var(--border) !important; cursor: pointer; }
+.photo-preview { max-width: 100%; max-height: 220px; border-radius: 8px; margin-top: 4px; border: 1px solid var(--border); }
+.photo-clear { align-self: flex-start; margin-top: 4px; }
 #quick-receipt { max-width: 640px; margin: 0 auto; gap: 10px; }
 #quick-receipt label { gap: 4px; }
 #quick-receipt input, #quick-receipt select { max-width: none; width: 100%; }

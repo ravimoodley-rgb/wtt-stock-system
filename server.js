@@ -515,7 +515,9 @@ app.post('/api/receipts', auth, role('Administrator','Manager','Supervisor','Dis
            bodyStr(b.received_at) || now(), bodyStr(b.notes), photo, req.user.id);
     db.prepare('UPDATE tanks SET current_qty = current_qty + ? WHERE id=?').run(qty, tank_id);
     db.exec('COMMIT');
-    log(req.user, 'CREATE', 'receipt', r.lastInsertRowid, b);
+    const audit = { ...b };
+    delete audit.photo;
+    log(req.user, 'CREATE', 'receipt', r.lastInsertRowid, audit);
     const over = tank.max_level != null && (tank.current_qty + qty) > tank.max_level;
     const productName = (db.prepare('SELECT name FROM products WHERE id=?').get(product_id) || {}).name || '';
     notifyStockReceived({ receipt_no, product: productName, qty, unit, tank: tank.code }).catch(() => {});
@@ -606,7 +608,9 @@ app.post('/api/dispatches', auth, role('Administrator','Manager','Supervisor','D
            bodyStr(b.destination), bodyStr(b.dispatched_at) || now(), bodyStr(b.notes), photo, req.user.id);
     db.prepare('UPDATE tanks SET current_qty = current_qty - ? WHERE id=?').run(qty, tank_id);
     db.exec('COMMIT');
-    log(req.user, 'CREATE', 'dispatch', r.lastInsertRowid, b);
+    const audit = { ...b };
+    delete audit.photo;
+    log(req.user, 'CREATE', 'dispatch', r.lastInsertRowid, audit);
     const productName = (db.prepare('SELECT name FROM products WHERE id=?').get(product_id) || {}).name || '';
     const customer = b.customer_id ? (db.prepare('SELECT name FROM customers WHERE id=?').get(b.customer_id) || {}).name : '';
     notifyStockDispatched({ dispatch_no, product: productName, qty, unit, tank: tank.code, customer: customer || bodyStr(b.destination) || '' }).catch(() => {});
