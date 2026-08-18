@@ -58,8 +58,8 @@
         <label>Tank <select name="tank_id" required><option value="">&mdash; Select tank &mdash;</option></select></label>
         <label>Loaded litres (per BOL) <input type="number" name="loaded_litres" step="any" min="0" inputmode="decimal" placeholder="Litres from bill of lading"></label>
         <div class="field-row">
-          <label>Meter opening <input type="number" name="meter_opening" step="any" min="0" inputmode="decimal"></label>
-          <label>Meter closing <input type="number" name="meter_closing" step="any" min="0" inputmode="decimal"></label>
+          <label>Meter opening <input type="number" name="meter_opening" id="r-meter-opening" step="any" min="0" inputmode="decimal"></label>
+          <label>Meter closing <input type="number" name="meter_closing" id="r-meter-closing" step="any" min="0" inputmode="decimal"></label>
         </div>
         <div class="qty-line">Received qty: <b id="recv-qty">0</b> L</div>
         <label>Transporter <select name="transporter_id"><option value="">&mdash; Select &mdash;</option></select></label>
@@ -103,8 +103,8 @@
         <label>Product <select name="product_id" required><option value="">&mdash; Select product &mdash;</option></select></label>
         <label>Tank <select name="tank_id" required><option value="">&mdash; Select tank &mdash;</option></select></label>
         <div class="field-row">
-          <label>Meter opening <input type="number" name="meter_opening" step="any" min="0" inputmode="decimal"></label>
-          <label>Meter closing <input type="number" name="meter_closing" step="any" min="0" inputmode="decimal"></label>
+          <label>Meter opening <input type="number" name="meter_opening" id="d-meter-opening" step="any" min="0" inputmode="decimal"></label>
+          <label>Meter closing <input type="number" name="meter_closing" id="d-meter-closing" step="any" min="0" inputmode="decimal"></label>
         </div>
         <div class="qty-line">Loaded qty: <b id="d-qty">0</b> L</div>
         <label>Transporter <select name="transporter_id"><option value="">&mdash; Select &mdash;</option></select></label>
@@ -117,7 +117,7 @@
   </main>
 </div>
 
-<div id="login-view" class="hidden">
+<div id="login-view">
   <div class="login-card">
     <div class="login-brand">
       <div class="login-mark">W</div>
@@ -134,16 +134,18 @@
 </div>
 
 <div id="success-overlay" class="hidden">
-  <div class="success-card">
-    <div class="success-check">&#10003;</div>
-    <h2 id="success-title">Saved</h2>
-    <p class="success-doc" id="success-doc"></p>
-    <p class="success-wa" id="success-wa"></p>
-    <div class="success-actions">
-      <button type="button" class="btn-save" id="btn-another">New entry</button>
+    <div class="success-card">
+      <div class="success-check">&#10003;</div>
+      <h2 id="success-title">Saved</h2>
+      <p class="success-doc" id="success-doc"></p>
+      <p class="success-wa" id="success-wa"></p>
+      <div class="success-actions">
+        <button type="button" class="btn-save" id="btn-another">New entry</button>
+      </div>
     </div>
   </div>
-</div>
+
+  <div id="err-strip" class="hidden"></div>
 
 <script src="mobile.js"></script>
 <script>

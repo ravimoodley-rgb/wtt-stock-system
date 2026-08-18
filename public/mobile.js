@@ -2,7 +2,20 @@
 
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
-const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+window.addEventListener('error', e => {
+  const strip = $('#err-strip');
+  if (strip) {
+    strip.textContent = 'Something went wrong: ' + (e.message || 'unknown error') + '. Please update the app / browser and retry.';
+    strip.classList.remove('hidden');
+  }
+});
+
+function on(sel, evt, fn) {
+  const el = $(sel);
+  if (el) el.addEventListener(evt, fn);
+}
 
 let token = localStorage.getItem('wtt_token') || null;
 let me = null;
@@ -48,7 +61,7 @@ function showApp() {
   setTab(state.tab);
 }
 
-$('#form-login').addEventListener('submit', async e => {
+on('#form-login', 'submit', async e => {
   e.preventDefault();
   const f = new FormData(e.target);
   $('#login-err').textContent = '';
@@ -63,7 +76,7 @@ $('#form-login').addEventListener('submit', async e => {
   }
 });
 
-$('#btn-logout').addEventListener('click', () => {
+on('#btn-logout', 'click', () => {
   token = null;
   localStorage.removeItem('wtt_token');
   showLogin();
@@ -134,8 +147,10 @@ $$('select[name=product_id]').forEach(prodSel => {
 // meter open/close → qty
 function bindQty(formSel, openId, closeId, qtyId) {
   const form = $(formSel);
+  if (!form) return;
   const op = form.querySelector('#' + openId), cl = form.querySelector('#' + closeId);
   const out = form.querySelector('#' + qtyId);
+  if (!op || !cl || !out) return;
   const upd = () => {
     const a = parseFloat(op.value) || 0, b = parseFloat(cl.value) || 0;
     out.textContent = fmtQty(Math.max(b - a, 0), 'L');
@@ -143,8 +158,8 @@ function bindQty(formSel, openId, closeId, qtyId) {
   op.addEventListener('input', upd);
   cl.addEventListener('input', upd);
 }
-bindQty('#form-receive', 'meter_opening', 'meter_closing', 'recv-qty');
-bindQty('#form-dispatch', 'meter_opening', 'meter_closing', 'd-qty');
+bindQty('#form-receive', 'r-meter-opening', 'r-meter-closing', 'recv-qty');
+bindQty('#form-dispatch', 'd-meter-opening', 'd-meter-closing', 'd-qty');
 
 // ---------------------------------------------------------------- photo capture
 $$('.photo-widget').forEach(widget => {
@@ -275,13 +290,13 @@ function showSuccess(title, docNo, key, waMsg, warning) {
   $('#success-overlay').classList.remove('hidden');
 }
 
-$('#btn-another').addEventListener('click', e => {
+on('#btn-another', 'click', e => {
   $('#success-overlay').classList.add('hidden');
   const next = e.target.dataset.next === 'dispatch' ? 'dispatch' : 'receive';
   setTab(next);
 });
 
-$('#form-receive').addEventListener('submit', e => { e.preventDefault(); submitReceive(); });
-$('#form-dispatch').addEventListener('submit', e => { e.preventDefault(); submitDispatch(); });
+on('#form-receive', 'submit', e => { e.preventDefault(); submitReceive(); });
+on('#form-dispatch', 'submit', e => { e.preventDefault(); submitDispatch(); });
 
 boot();
