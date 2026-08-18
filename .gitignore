@@ -12,3 +12,6 @@ android-wtt/android/.gradle/
 android-wtt/android/build/
 android-wtt/android/app/build/
 android-wtt/android/app/src/main/assets/public/
+android-wtt/android/local.properties
+android-wtt/wtt-release.keystore
+android-wtt/wtt-keystore-password.txt
