@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e2233">
+<title>WTT Capture — Install</title>
+<style>
+  :root { --bg:#0e2233; --card:#fff; --ink:#16222e; --muted:#6b7683; --acc:#0a7d4f; --acc-dark:#086a43; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+         background:linear-gradient(160deg,var(--bg) 0%,#163a52 100%); min-height:100vh; color:var(--ink); }
+  .wrap { max-width:520px; margin:0 auto; padding:28px 20px calc(28px + env(safe-area-inset-bottom)); }
+  .logo { display:flex; align-items:center; gap:12px; color:#fff; }
+  .logo-mark { width:44px; height:44px; display:grid; place-items:center; background:var(--acc);
+               border-radius:12px; color:#fff; font-weight:800; font-size:24px; }
+  .logo h1 { font-size:18px; margin:0; }
+  .logo p { margin:2px 0 0; font-size:12px; opacity:.75; }
+  .card { background:var(--card); border-radius:16px; padding:22px; margin-top:18px;
+          box-shadow:0 10px 40px rgba(0,0,0,.3); text-align:center; }
+  .qr { width:200px; height:200px; border:1px solid #e3e8ee; border-radius:12px; margin:6px auto 14px; }
+  .btn { display:block; width:100%; padding:16px; background:var(--acc); color:#fff; text-decoration:none;
+         border-radius:12px; font-size:17px; font-weight:700; box-shadow:0 4px 14px rgba(10,125,79,.35); }
+  .btn small { display:block; font-weight:400; font-size:12px; opacity:.85; }
+  h2 { font-size:19px; margin:0 0 6px; }
+  .steps { text-align:left; margin-top:18px; }
+  .steps h3 { font-size:14px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); }
+  .steps ol { margin:8px 0 0; padding-left:20px; font-size:14.5px; line-height:1.9; }
+  .note { font-size:12.5px; color:var(--muted); margin-top:14px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">
+      <div class="logo-mark">W</div>
+      <div>
+        <h1>WTT Capture</h1>
+        <p>Witbank Tank Terminals &middot; Stock receiving &amp; dispatch</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Install on your phone</h2>
+      <p style="margin:0 0 4px;font-size:14px;color:var(--muted)">Scan with your phone camera:</p>
+      <img class="qr" src="/download-qr.png" alt="QR code to install WTT Capture">
+      <a class="btn" href="/wtt-capture.apk" download>
+        Download WTT Capture (Android)
+        <small>wtt-capture.apk &middot; 2.9 MB</small>
+      </a>
+      <div class="steps">
+        <h3>How to install</h3>
+        <ol>
+          <li>Tap <b>Download</b> above (or scan the QR code).</li>
+          <li>Open the downloaded <b>wtt-capture.apk</b> file from your notifications or Downloads.</li>
+          <li>If asked, allow <b>"Install unknown apps"</b> for your browser / files app.</li>
+          <li>Tap <b>Install</b>, then open <b>WTT Capture</b>.</li>
+          <li>Sign in with your WTT username and password.</li>
+        </ol>
+      </div>
+      <p class="note">Android only. The app needs an internet connection and opens the live stock system.</p>
+    </div>
+  </div>
+</body>
+</html>
