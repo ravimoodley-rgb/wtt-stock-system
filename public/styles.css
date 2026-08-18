@@ -142,6 +142,7 @@ body.role-Administrator .nav-drop.admin-only.open { display: block; }
 .stat-card .stat-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
 .stat-card .stat-value { font-size: 26px; font-weight: 800; color: var(--primary-dark); margin-top: 4px; }
 .stat-card .stat-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.stat-card .stat-sub.stat-active { color: var(--text); font-size: 11px; font-weight: 700; }
 
 .dash-overview { display: flex; gap: 12px; flex-wrap: wrap; }
 .dash-metric { flex: 1 1 120px; display: flex; flex-direction: column; gap: 2px; }

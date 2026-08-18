@@ -222,7 +222,7 @@ async function renderDashboard(content) {
 
   content.innerHTML = `
     <div class="grid cards">
-      <div class="stat-card"><div class="stat-label">Storage tanks</div><div class="stat-value">${t.tank_count}</div><div class="stat-sub">active</div></div>
+      <div class="stat-card"><div class="stat-label">Storage tanks</div><div class="stat-value">${t.tank_count}</div><div class="stat-sub stat-active">(Active)</div></div>
       <div class="stat-card"><div class="stat-label">Product in storage</div><div class="stat-value">${fmtNum(t.total_qty)} L</div><div class="stat-sub">across all tanks</div></div>
       <div class="stat-card"><div class="stat-label">Movements today</div><div class="stat-value">${d.movementsToday}</div><div class="stat-sub">receipts + dispatches</div></div>
       <div class="stat-card"><div class="stat-label">Net stock movement</div><div class="stat-value">${fmtNum(rec.today_litres - dis.today_litres)} L</div><div class="stat-sub">received − dispatched today</div></div>
