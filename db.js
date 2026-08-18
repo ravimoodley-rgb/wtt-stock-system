@@ -186,11 +186,11 @@ CREATE TABLE IF NOT EXISTS drivers (
 
 CREATE TABLE IF NOT EXISTS vehicles (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  fleet_no       TEXT,
   reg            TEXT NOT NULL UNIQUE,
   vehicle_type   TEXT,
   transporter_id INTEGER REFERENCES transporters(id),
-  driver_id      INTEGER REFERENCES drivers(id),
-  notes          TEXT,
+  licence_expiry TEXT,
   created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
 `);
@@ -215,6 +215,20 @@ if (!dispatchesCols.includes('meter_opening')) {
 }
 if (!dispatchesCols.includes('meter_closing')) {
   db.exec('ALTER TABLE dispatches ADD COLUMN meter_closing REAL');
+}
+
+// vehicles: rebuild if it still has the old schema (driver_id/notes)
+const vehiclesCols = db.prepare('PRAGMA table_info(vehicles)').all().map(c => c.name);
+if (vehiclesCols.length && !vehiclesCols.includes('fleet_no')) {
+  db.exec(`DROP TABLE IF EXISTS vehicles; CREATE TABLE vehicles (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    fleet_no       TEXT,
+    reg            TEXT NOT NULL UNIQUE,
+    vehicle_type   TEXT,
+    transporter_id INTEGER REFERENCES transporters(id),
+    licence_expiry TEXT,
+    created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+  );`);
 }
 
 // ---------------------------------------------------------------- helpers

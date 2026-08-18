@@ -414,21 +414,19 @@ async function renderReceipts(content) {
     };
     $('#meter_opening').addEventListener('input', updRecv);
     $('#meter_closing').addEventListener('input', updRecv);
-    bindVehicleAutofill('#quick-receipt', 'rec-vehicle', 'rec-driver');
+    bindVehicleAutofill('#quick-receipt', 'rec-vehicle');
     $('#quick-receipt').addEventListener('submit', submitReceipt);
   }
 }
 
-function bindVehicleAutofill(formSel, vehicleId, driverId) {
+function bindVehicleAutofill(formSel, vehicleId) {
   const form = $(formSel);
   const veh = $(formSel + ' #' + vehicleId);
-  const driver = $(formSel + ' #' + driverId);
-  if (!form || !veh || !driver) return;
+  if (!form || !veh) return;
   veh.addEventListener('change', () => {
     const v = vehicleInfo(veh.value);
-    if (!v) { driver.value = ''; return; }
-    driver.value = v.driver || '';
     const trans = form.querySelector('select[name=transporter_id]');
+    if (!v) { if (trans) trans.value = ''; return; }
     if (trans && v.transporter_id) trans.value = v.transporter_id;
   });
 }
@@ -508,7 +506,7 @@ async function renderDispatches(content) {
     };
     $('#d-meter-opening').addEventListener('input', updD);
     $('#d-meter-closing').addEventListener('input', updD);
-    bindVehicleAutofill('#quick-dispatch', 'd-vehicle', 'd-driver');
+    bindVehicleAutofill('#quick-dispatch', 'd-vehicle');
   }
 }
 
@@ -1113,23 +1111,21 @@ async function renderDrivers(content) {
 }
 
 // ---------------------------------------------------------------- vehicles (admin)
-function driverOptions(sel) {
-  return `<option value="">— Select driver —</option>` + driversCache.map(d => `<option value="${d.id}" ${String(d.id) === String(sel) ? 'selected' : ''}>${esc(d.name)}</option>`).join('');
-}
+const VEHICLE_TYPES = ['Truck Tractor', 'Tanker Trailer', 'Interlink Trailer', 'Draw-bar Link Trailer'];
 
 function vehicleModal(id) {
   const v = id ? vehiclesCache.find(x => x.id === id) : {};
   openModal(`${id ? 'Edit' : 'Add'} vehicle`, `
     <form class="form-grid" id="vehicle-form">
-      <label class="full">Registration <input name="reg" value="${esc(v.reg || '')}" required></label>
-      <label>Vehicle Type <input name="vehicle_type" value="${esc(v.vehicle_type || '')}" placeholder="e.g. Tanker, Truck"></label>
+      <label>Fleet Number <input name="fleet_no" value="${esc(v.fleet_no || '')}"></label>
+      <label>Registration <input name="reg" value="${esc(v.reg || '')}" required></label>
+      <label>Vehicle Type
+        <select name="vehicle_type"><option value="">— Select type —</option>${VEHICLE_TYPES.map(tp => `<option value="${tp}" ${v.vehicle_type === tp ? 'selected' : ''}>${tp}</option>`).join('')}</select>
+      </label>
       <label>Transporter
         <select name="transporter_id"><option value="">— Select transporter —</option>${transportersCache.map(t => `<option value="${t.id}" ${String(t.id) === String(v.transporter_id) ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
       </label>
-      <label>Driver
-        <select name="driver_id">${driverOptions(v.driver_id)}</select>
-      </label>
-      <label class="full">Notes <textarea name="notes">${esc(v.notes || '')}</textarea></label>
+      <label>Licence Expiry Date <input name="licence_expiry" type="date" value="${esc(v.licence_expiry || '')}"></label>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost btn-outline" onclick="closeModal()">Cancel</button>
         <button type="submit" class="btn btn-primary">Save</button>
@@ -1160,13 +1156,13 @@ async function renderVehicles(content) {
       ${canWrite() ? '<button class="btn btn-transport" onclick="vehicleModal()">+ Add vehicle</button>' : ''}
     </div>
     <div class="table-wrap"><table class="data">
-      <thead><tr><th>Registration</th><th>Type</th><th>Transporter</th><th>Driver</th><th>Notes</th>${isAdmin() ? '<th></th>' : ''}</tr></thead>
+      <thead><tr><th>Fleet Number</th><th>Registration</th><th>Type</th><th>Transporter</th><th>Licence Expiry Date</th>${isAdmin() ? '<th></th>' : ''}</tr></thead>
       <tbody>${vehiclesCache.map(v => `<tr>
-        <td><b>${esc(v.reg)}</b></td>
+        <td><b>${esc(v.fleet_no || '—')}</b></td>
+        <td>${esc(v.reg)}</td>
         <td>${esc(v.vehicle_type || '—')}</td>
         <td>${esc(v.transporter || '—')}</td>
-        <td>${esc(v.driver || '—')}</td>
-        <td class="muted">${esc(v.notes || '')}</td>
+        <td class="muted">${esc(v.licence_expiry || '')}</td>
         ${isAdmin() ? `<td><div class="flex"><button class="btn btn-sm btn-outline" onclick="vehicleModal(${v.id})">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteVehicle(${v.id})">Del</button></div></td>` : ''}
       </tr>`).join('')}</tbody>
     </table></div>`;

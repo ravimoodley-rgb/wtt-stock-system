@@ -402,18 +402,17 @@ app.delete('/api/drivers/:id', auth, role('Administrator'), (req, res) => {
 // ---------------------------------------------------------------- vehicles
 app.get('/api/vehicles', auth, (req, res) => {
   res.json(db.prepare(`
-    SELECT v.*, t.name AS transporter, d.name AS driver
+    SELECT v.*, t.name AS transporter
     FROM vehicles v
     LEFT JOIN transporters t ON t.id = v.transporter_id
-    LEFT JOIN drivers d ON d.id = v.driver_id
-    ORDER BY v.reg`).all());
+    ORDER BY v.fleet_no, v.reg`).all());
 });
 app.post('/api/vehicles', auth, role('Administrator','Manager','Supervisor','Dispatcher'), (req, res) => {
   const b = req.body || {};
   const reg = bodyStr(b.reg);
   if (!reg) return res.status(400).json({ error: 'Vehicle registration required' });
-  const r = db.prepare(`INSERT INTO vehicles (reg, vehicle_type, transporter_id, driver_id, notes)
-    VALUES (?,?,?,?,?)`).run(reg, bodyStr(b.vehicle_type), b.transporter_id ?? null, b.driver_id ?? null, bodyStr(b.notes));
+  const r = db.prepare(`INSERT INTO vehicles (fleet_no, reg, vehicle_type, transporter_id, licence_expiry)
+    VALUES (?,?,?,?,?)`).run(bodyStr(b.fleet_no), reg, bodyStr(b.vehicle_type), b.transporter_id ?? null, bodyStr(b.licence_expiry));
   log(req.user, 'CREATE', 'vehicle', r.lastInsertRowid, b);
   res.json({ id: r.lastInsertRowid });
 });
@@ -421,8 +420,8 @@ app.put('/api/vehicles/:id', auth, role('Administrator','Manager','Supervisor','
   const b = req.body || {};
   const reg = bodyStr(b.reg);
   if (!reg) return res.status(400).json({ error: 'Vehicle registration required' });
-  db.prepare(`UPDATE vehicles SET reg=?, vehicle_type=?, transporter_id=?, driver_id=?, notes=? WHERE id=?`)
-    .run(reg, bodyStr(b.vehicle_type), b.transporter_id ?? null, b.driver_id ?? null, bodyStr(b.notes), req.params.id);
+  db.prepare(`UPDATE vehicles SET fleet_no=?, reg=?, vehicle_type=?, transporter_id=?, licence_expiry=? WHERE id=?`)
+    .run(bodyStr(b.fleet_no), reg, bodyStr(b.vehicle_type), b.transporter_id ?? null, bodyStr(b.licence_expiry), req.params.id);
   log(req.user, 'UPDATE', 'vehicle', +req.params.id, b);
   res.json({ ok: true });
 });
