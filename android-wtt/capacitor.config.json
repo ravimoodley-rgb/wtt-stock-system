@@ -1,0 +1,12 @@
+{
+  "appId": "com.witbankterminals.wttcapture",
+  "appName": "WTT Capture",
+  "webDir": "web",
+  "server": {
+    "url": "https://wtt-stock-system.onrender.com/mobile.html",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

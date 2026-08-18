@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WTT Capture</string>
+    <string name="title_activity_main">WTT Capture</string>
+    <string name="package_name">com.witbankterminals.wttcapture</string>
+    <string name="custom_url_scheme">com.witbankterminals.wttcapture</string>
+</resources>
