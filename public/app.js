@@ -86,10 +86,10 @@ function logout(reload = true) {
 }
 
 // ---------------------------------------------------------------- boot
-let productsCache = [], tanksCache = [], suppliersCache = [], customersCache = [], transportersCache = [], driversCache = [];
+let productsCache = [], tanksCache = [], suppliersCache = [], customersCache = [], transportersCache = [], driversCache = [], vehiclesCache = [];
 async function loadReference() {
-  [productsCache, tanksCache, suppliersCache, customersCache, transportersCache, driversCache] = await Promise.all([
-    api('/products'), api('/tanks'), api('/suppliers'), api('/customers'), api('/transporters'), api('/drivers')
+  [productsCache, tanksCache, suppliersCache, customersCache, transportersCache, driversCache, vehiclesCache] = await Promise.all([
+    api('/products'), api('/tanks'), api('/suppliers'), api('/customers'), api('/transporters'), api('/drivers'), api('/vehicles')
   ]);
 }
 
@@ -113,7 +113,7 @@ const titles = {
   dashboard: 'Dashboard', stock: 'Tanks & Stock', receipts: 'Stock Received',
   dispatches: 'Stock Dispatch', transfers: 'Transfers', adjustments: 'Dips & Adjustments',
   reports: 'Reports', customers: 'Customers', suppliers: 'Suppliers',
-  products: 'Products', transporters: 'Transporters', drivers: 'Drivers',
+  products: 'Products', transporters: 'Transporters', drivers: 'Drivers', vehicles: 'Vehicles',
   users: 'Users', audit: 'Audit Log'
 };
 
@@ -144,6 +144,7 @@ async function go(section) {
       case 'products': return await renderProducts(content);
       case 'transporters': return await renderTransporters(content);
       case 'drivers': return await renderDrivers(content);
+      case 'vehicles': return await renderVehicles(content);
       case 'users': return await renderUsers(content);
       case 'audit': return await renderAudit(content);
     }
@@ -1085,6 +1086,66 @@ async function renderDrivers(content) {
         <td>${esc(d.phone || '—')}</td>
         <td class="muted">${esc(d.notes || '')}</td>
         ${isAdmin() ? `<td><div class="flex"><button class="btn btn-sm btn-outline" onclick="driverModal(${d.id})">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteDriver(${d.id})">Del</button></div></td>` : ''}
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+// ---------------------------------------------------------------- vehicles (admin)
+function driverOptions(sel) {
+  return `<option value="">— Select driver —</option>` + driversCache.map(d => `<option value="${d.id}" ${String(d.id) === String(sel) ? 'selected' : ''}>${esc(d.name)}</option>`).join('');
+}
+
+function vehicleModal(id) {
+  const v = id ? vehiclesCache.find(x => x.id === id) : {};
+  openModal(`${id ? 'Edit' : 'Add'} vehicle`, `
+    <form class="form-grid" id="vehicle-form">
+      <label class="full">Registration <input name="reg" value="${esc(v.reg || '')}" required></label>
+      <label>Vehicle Type <input name="vehicle_type" value="${esc(v.vehicle_type || '')}" placeholder="e.g. Tanker, Truck"></label>
+      <label>Transporter
+        <select name="transporter_id"><option value="">— Select transporter —</option>${transportersCache.map(t => `<option value="${t.id}" ${String(t.id) === String(v.transporter_id) ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
+      </label>
+      <label>Driver
+        <select name="driver_id">${driverOptions(v.driver_id)}</select>
+      </label>
+      <label class="full">Notes <textarea name="notes">${esc(v.notes || '')}</textarea></label>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost btn-outline" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>`);
+  $('#vehicle-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = Object.fromEntries(new FormData(e.target).entries());
+    try {
+      if (id) { await api('/vehicles/' + id, 'PUT', body); toast('Vehicle updated'); }
+      else { await api('/vehicles', 'POST', body); toast('Vehicle added'); }
+      closeModal(); await loadReference(); go('vehicles');
+    } catch (err) { toast(err.message, 'error'); }
+  });
+}
+
+async function deleteVehicle(id) {
+  const v = vehiclesCache.find(x => x.id === id);
+  if (!confirmAction(`Delete vehicle "${v.reg}"?`)) return;
+  try { await api('/vehicles/' + id, 'DELETE'); toast('Deleted'); await loadReference(); go('vehicles'); }
+  catch (err) { toast(err.message, 'error'); }
+}
+
+async function renderVehicles(content) {
+  content.innerHTML = `
+    <div class="content-head">
+      <div class="muted">Tanker fleet vehicles and their transport company.</div>
+      ${canWrite() ? '<button class="btn btn-transport" onclick="vehicleModal()">+ Add vehicle</button>' : ''}
+    </div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>Registration</th><th>Type</th><th>Transporter</th><th>Driver</th><th>Notes</th>${isAdmin() ? '<th></th>' : ''}</tr></thead>
+      <tbody>${vehiclesCache.map(v => `<tr>
+        <td><b>${esc(v.reg)}</b></td>
+        <td>${esc(v.vehicle_type || '—')}</td>
+        <td>${esc(v.transporter || '—')}</td>
+        <td>${esc(v.driver || '—')}</td>
+        <td class="muted">${esc(v.notes || '')}</td>
+        ${isAdmin() ? `<td><div class="flex"><button class="btn btn-sm btn-outline" onclick="vehicleModal(${v.id})">Edit</button><button class="btn btn-sm btn-danger" onclick="deleteVehicle(${v.id})">Del</button></div></td>` : ''}
       </tr>`).join('')}</tbody>
     </table></div>`;
 }

@@ -183,6 +183,16 @@ CREATE TABLE IF NOT EXISTS drivers (
   notes          TEXT,
   created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
 );
+
+CREATE TABLE IF NOT EXISTS vehicles (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  reg            TEXT NOT NULL UNIQUE,
+  vehicle_type   TEXT,
+  transporter_id INTEGER REFERENCES transporters(id),
+  driver_id      INTEGER REFERENCES drivers(id),
+  notes          TEXT,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+);
 `);
 
 // ---------------------------------------------------------------- migrations

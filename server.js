@@ -361,6 +361,8 @@ app.delete('/api/transporters/:id', auth, role('Administrator'), (req, res) => {
   if (inUse) return res.status(400).json({ error: 'Transporter is linked to a receipt and cannot be deleted' });
   const drv = db.prepare('SELECT id FROM drivers WHERE transporter_id=? LIMIT 1').get(req.params.id);
   if (drv) return res.status(400).json({ error: 'Transporter is linked to a driver and cannot be deleted' });
+  const veh = db.prepare('SELECT id FROM vehicles WHERE transporter_id=? LIMIT 1').get(req.params.id);
+  if (veh) return res.status(400).json({ error: 'Transporter is linked to a vehicle and cannot be deleted' });
   db.prepare('DELETE FROM transporters WHERE id=?').run(req.params.id);
   log(req.user, 'DELETE', 'transporter', +req.params.id, {});
   res.json({ ok: true });
@@ -394,6 +396,39 @@ app.put('/api/drivers/:id', auth, role('Administrator','Manager','Supervisor','D
 app.delete('/api/drivers/:id', auth, role('Administrator'), (req, res) => {
   db.prepare('DELETE FROM drivers WHERE id=?').run(req.params.id);
   log(req.user, 'DELETE', 'driver', +req.params.id, {});
+  res.json({ ok: true });
+});
+
+// ---------------------------------------------------------------- vehicles
+app.get('/api/vehicles', auth, (req, res) => {
+  res.json(db.prepare(`
+    SELECT v.*, t.name AS transporter, d.name AS driver
+    FROM vehicles v
+    LEFT JOIN transporters t ON t.id = v.transporter_id
+    LEFT JOIN drivers d ON d.id = v.driver_id
+    ORDER BY v.reg`).all());
+});
+app.post('/api/vehicles', auth, role('Administrator','Manager','Supervisor','Dispatcher'), (req, res) => {
+  const b = req.body || {};
+  const reg = bodyStr(b.reg);
+  if (!reg) return res.status(400).json({ error: 'Vehicle registration required' });
+  const r = db.prepare(`INSERT INTO vehicles (reg, vehicle_type, transporter_id, driver_id, notes)
+    VALUES (?,?,?,?,?)`).run(reg, bodyStr(b.vehicle_type), b.transporter_id ?? null, b.driver_id ?? null, bodyStr(b.notes));
+  log(req.user, 'CREATE', 'vehicle', r.lastInsertRowid, b);
+  res.json({ id: r.lastInsertRowid });
+});
+app.put('/api/vehicles/:id', auth, role('Administrator','Manager','Supervisor','Dispatcher'), (req, res) => {
+  const b = req.body || {};
+  const reg = bodyStr(b.reg);
+  if (!reg) return res.status(400).json({ error: 'Vehicle registration required' });
+  db.prepare(`UPDATE vehicles SET reg=?, vehicle_type=?, transporter_id=?, driver_id=?, notes=? WHERE id=?`)
+    .run(reg, bodyStr(b.vehicle_type), b.transporter_id ?? null, b.driver_id ?? null, bodyStr(b.notes), req.params.id);
+  log(req.user, 'UPDATE', 'vehicle', +req.params.id, b);
+  res.json({ ok: true });
+});
+app.delete('/api/vehicles/:id', auth, role('Administrator'), (req, res) => {
+  db.prepare('DELETE FROM vehicles WHERE id=?').run(req.params.id);
+  log(req.user, 'DELETE', 'vehicle', +req.params.id, {});
   res.json({ ok: true });
 });
 
