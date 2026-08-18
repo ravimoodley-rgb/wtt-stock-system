@@ -54,7 +54,6 @@ body {
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 12px; letter-spacing: 1px;
 }
-.logo-badge.small { width: 38px; height: 38px; font-size: 12px; margin: 0; }
 #login-form label { display: block; margin-bottom: 14px; font-weight: 600; color: var(--text); }
 #login-form input {
   display: block; width: 100%; margin-top: 6px; padding: 11px 12px;
@@ -70,8 +69,8 @@ body {
   display: flex; flex-direction: column; flex-shrink: 0;
 }
 .brand {
-  display: flex; align-items: center; gap: 10px;
-  padding: 16px 14px; border-bottom: 1px solid rgba(255,255,255,.12);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 16px 14px; border-bottom: 1px solid rgba(255,255,255,.12); text-align: center;
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
 .brand-text strong, .brand-text span { font-size: 14px; font-weight: 700; color: #ffffff; }
@@ -157,11 +156,6 @@ body.role-Administrator .nav-drop.admin-only.open { display: block; }
 .stat-card .stat-value { font-size: 26px; font-weight: 800; color: var(--text); margin-top: 4px; }
 .stat-card .stat-sub { color: var(--text); font-size: 12px; margin-top: 2px; font-weight: 700; }
 .stat-card .stat-sub.stat-active { color: var(--text); font-size: 11px; font-weight: 700; }
-
-.dash-overview { display: flex; gap: 12px; flex-wrap: wrap; }
-.dash-metric { flex: 1 1 120px; display: flex; flex-direction: column; gap: 2px; }
-.dash-metric b { font-size: 20px; font-weight: 800; color: var(--primary-dark); }
-.dash-metric .muted { font-size: 12px; }
 
 .recent-list { display: flex; flex-direction: column; }
 .recent-line {
